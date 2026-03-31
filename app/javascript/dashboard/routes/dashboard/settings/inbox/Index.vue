@@ -20,6 +20,11 @@ const getters = useStoreGetters();
 const store = useStore();
 const { t } = useI18n();
 const { isAdmin } = useAdmin();
+const currentRole = computed(() => getters.getCurrentRole.value);
+const canManageInbox = computed(
+  () =>
+    currentRole.value === 'administrator' || currentRole.value === 'supervisor'
+);
 
 const showDeletePopup = ref(false);
 const selectedInbox = ref({});
@@ -157,7 +162,7 @@ const openDelete = inbox => {
               }"
             >
               <Button
-                v-if="isAdmin"
+                v-if="canManageInbox"
                 v-tooltip.top="$t('INBOX_MGMT.SETTINGS')"
                 icon="i-woot-settings"
                 slate
