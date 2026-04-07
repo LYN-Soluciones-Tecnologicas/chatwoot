@@ -10,17 +10,27 @@ module Custom::Api::V1::Accounts::AgentsController
     super
   end
 
+  def update
+    if Current.account_user.supervisor?
+      role_param = params.dig(:agent, :role)
+      if role_param.present? && role_param != 'agent'
+        render json: { error: 'Supervisors can only assign agent role' }, status: :forbidden
+        return
+      end
+    end
+
+    super
+  end
+
   private
 
   def agents
     return super unless Current.account_user.supervisor?
 
     supervisor_inbox_ids = Current.user.inboxes.where(account_id: Current.account.id).select(:id)
-    user_ids_in_my_inboxes = InboxMember.where(inbox_id: supervisor_inbox_ids).select(:user_id)
-    user_ids_with_any_inbox = InboxMember.joins(:inbox).where(inboxes: { account_id: Current.account.id }).select(:user_id)
 
     @agents ||= Current.account.users
-                        .where('users.id IN (?) OR users.id NOT IN (?)', user_ids_in_my_inboxes, user_ids_with_any_inbox)
+                        .where(id: InboxMember.where(inbox_id: supervisor_inbox_ids).select(:user_id))
                         .order_by_full_name
                         .includes(:account_users, { avatar_attachment: [:blob] })
   end

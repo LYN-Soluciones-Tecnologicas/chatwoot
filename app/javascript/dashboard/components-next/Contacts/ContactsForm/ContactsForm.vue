@@ -9,6 +9,8 @@ import Input from 'dashboard/components-next/input/Input.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import PhoneNumberInput from 'dashboard/components-next/phonenumberinput/PhoneNumberInput.vue';
+import { useMapGetter, useStoreGetters } from 'dashboard/composables/store';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 
 const props = defineProps({
   contactData: {
@@ -28,6 +30,19 @@ const props = defineProps({
 const emit = defineEmits(['update']);
 
 const { t } = useI18n();
+const { isAdmin } = useAdmin();
+const inboxesList = useMapGetter('inboxes/getInboxes');
+
+const inboxOptions = computed(() =>
+  (inboxesList.value || []).map(inbox => ({
+    label: inbox.name,
+    value: inbox.id,
+  }))
+);
+
+const showInboxSelector = computed(
+  () => props.isNewContact && !isAdmin.value
+);
 
 const FORM_CONFIG = {
   FIRST_NAME: { field: 'firstName' },
@@ -57,6 +72,7 @@ const defaultState = {
   firstName: '',
   lastName: '',
   phoneNumber: '',
+  inboxId: null,
   additionalAttributes: {
     description: '',
     companyName: '',
@@ -215,6 +231,11 @@ const getMessageType = key => {
     : 'info';
 };
 
+const handleInboxSelection = value => {
+  state.inboxId = value;
+  emit('update', state);
+};
+
 const handleCountrySelection = value => {
   const selectedCountry = countries.find(option => option.id === value);
   state.additionalAttributes.country = selectedCountry?.name || '';
@@ -248,6 +269,18 @@ defineExpose({
 
 <template>
   <div class="flex flex-col gap-6">
+    <div v-if="showInboxSelector" class="flex flex-col items-start gap-2">
+      <span class="py-1 text-sm font-medium text-n-slate-12">
+        {{ t('CONTACT_FORM.FORM.INBOX.LABEL') }}
+      </span>
+      <ComboBox
+        v-model="state.inboxId"
+        :options="inboxOptions"
+        :placeholder="t('CONTACT_FORM.FORM.INBOX.PLACEHOLDER')"
+        class="w-full [&>div>button]:h-8"
+        @update:model-value="handleInboxSelection"
+      />
+    </div>
     <div class="flex flex-col items-start gap-2">
       <span class="py-1 text-sm font-medium text-n-slate-12">
         {{ t('CONTACTS_LAYOUT.CARD.EDIT_DETAILS_FORM.TITLE') }}

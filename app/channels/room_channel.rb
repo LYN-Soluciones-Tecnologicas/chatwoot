@@ -57,3 +57,5 @@ class RoomChannel < ApplicationCable::Channel
                          end
   end
 end
+
+RoomChannel.prepend_mod_with('RoomChannel')

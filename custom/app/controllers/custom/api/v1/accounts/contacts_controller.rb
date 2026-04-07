@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 module Custom::Api::V1::Accounts::ContactsController
+  def create
+    unless Current.account_user&.administrator?
+      if params[:inbox_id].blank?
+        render json: { error: 'Inbox is required for non-admin users' }, status: :unprocessable_entity
+        return
+      end
+    end
+
+    super
+  end
+
   def search
     render json: { error: 'Specify search string with parameter q' }, status: :unprocessable_entity if params[:q].blank? && return
 

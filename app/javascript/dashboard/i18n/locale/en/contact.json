@@ -82,6 +82,10 @@
     "FORM": {
       "SUBMIT": "Submit",
       "CANCEL": "Cancel",
+      "INBOX": {
+        "LABEL": "Inbox",
+        "PLACEHOLDER": "Select an inbox for this contact"
+      },
       "AVATAR": {
         "LABEL": "Contact Avatar"
       },
