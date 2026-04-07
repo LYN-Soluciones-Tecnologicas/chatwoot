@@ -84,7 +84,8 @@
       "CANCEL": "Cancel",
       "INBOX": {
         "LABEL": "Inbox",
-        "PLACEHOLDER": "Select an inbox for this contact"
+        "PLACEHOLDER": "Select an inbox for this contact",
+        "ERROR": "Inbox is required. Please select an inbox for this contact."
       },
       "AVATAR": {
         "LABEL": "Contact Avatar"

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { required, email } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
@@ -100,7 +100,14 @@ const validationRules = {
 
 const v$ = useVuelidate(validationRules, state);
 
-const isFormInvalid = computed(() => v$.value.$invalid);
+const inboxTouched = ref(false);
+const inboxError = computed(
+  () => showInboxSelector.value && inboxTouched.value && !state.inboxId
+);
+const isFormInvalid = computed(() => {
+  if (showInboxSelector.value && !state.inboxId) return true;
+  return v$.value.$invalid;
+});
 
 const prepareStateBasedOnProps = () => {
   if (props.isNewContact) {
@@ -232,6 +239,7 @@ const getMessageType = key => {
 };
 
 const handleInboxSelection = value => {
+  inboxTouched.value = true;
   state.inboxId = value;
   emit('update', state);
 };
@@ -259,11 +267,16 @@ watch(
 );
 
 // Expose state to parent component for avatar upload
+const touchInbox = () => {
+  inboxTouched.value = true;
+};
+
 defineExpose({
   state,
   resetValidation,
   isFormInvalid,
   resetForm,
+  touchInbox,
 });
 </script>
 
@@ -278,8 +291,12 @@ defineExpose({
         :options="inboxOptions"
         :placeholder="t('CONTACT_FORM.FORM.INBOX.PLACEHOLDER')"
         class="w-full [&>div>button]:h-8"
+        :class="{ '[&>div>button]:!outline-n-ruby-9': inboxError }"
         @update:model-value="handleInboxSelection"
       />
+      <span v-if="inboxError" class="text-xs text-n-ruby-11">
+        {{ t('CONTACT_FORM.FORM.INBOX.ERROR') }}
+      </span>
     </div>
     <div class="flex flex-col items-start gap-2">
       <span class="py-1 text-sm font-medium text-n-slate-12">

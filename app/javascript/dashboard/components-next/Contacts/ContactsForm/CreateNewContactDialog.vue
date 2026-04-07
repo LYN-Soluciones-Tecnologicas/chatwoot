@@ -23,6 +23,8 @@ const createNewContact = contactItem => {
 };
 
 const handleDialogConfirm = async () => {
+  contactsFormRef.value?.touchInbox();
+  if (contactsFormRef.value?.isFormInvalid) return;
   if (!contact.value) return;
   emit('create', contact.value);
 };
