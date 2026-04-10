@@ -126,14 +126,30 @@ const removeAllHandles = holder => {
 };
 
 const HANDLE_DEFINITIONS = [
-  { name: 'top', edges: { top: true } },
-  { name: 'bottom', edges: { bottom: true } },
-  { name: 'left', edges: { left: true } },
-  { name: 'right', edges: { right: true } },
-  { name: 'corner-top-left', edges: { top: true, left: true } },
-  { name: 'corner-top-right', edges: { top: true, right: true } },
-  { name: 'corner-bottom-left', edges: { bottom: true, left: true } },
-  { name: 'corner-bottom-right', edges: { bottom: true, right: true } },
+  { name: 'top', edges: { top: true }, cursor: 'ns-resize' },
+  { name: 'bottom', edges: { bottom: true }, cursor: 'ns-resize' },
+  { name: 'left', edges: { left: true }, cursor: 'ew-resize' },
+  { name: 'right', edges: { right: true }, cursor: 'ew-resize' },
+  {
+    name: 'corner-top-left',
+    edges: { top: true, left: true },
+    cursor: 'nwse-resize',
+  },
+  {
+    name: 'corner-top-right',
+    edges: { top: true, right: true },
+    cursor: 'nesw-resize',
+  },
+  {
+    name: 'corner-bottom-left',
+    edges: { bottom: true, left: true },
+    cursor: 'nesw-resize',
+  },
+  {
+    name: 'corner-bottom-right',
+    edges: { bottom: true, right: true },
+    cursor: 'nwse-resize',
+  },
 ];
 
 const createHandle = (holder, definition) => {
@@ -162,6 +178,14 @@ const createHandle = (holder, definition) => {
       height: rect.height,
     };
     holder.classList.add('woot--resizing');
+
+    // Disable iframe pointer events so mousemove keeps reaching document
+    const iframe = document.getElementById('chatwoot_live_chat_widget');
+    if (iframe) iframe.style.pointerEvents = 'none';
+
+    // Lock cursor and prevent text selection during resize
+    document.body.style.cursor = definition.cursor;
+    document.body.style.userSelect = 'none';
   };
 
   const onMouseMove = event => {
@@ -227,6 +251,15 @@ const createHandle = (holder, definition) => {
     if (!isResizing) return;
     isResizing = false;
     holder.classList.remove('woot--resizing');
+
+    // Restore iframe pointer events
+    const iframe = document.getElementById('chatwoot_live_chat_widget');
+    if (iframe) iframe.style.pointerEvents = '';
+
+    // Restore body cursor and selection
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
     const rect = holder.getBoundingClientRect();
     storeSize(rect.width, rect.height);
   };
