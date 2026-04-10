@@ -28,19 +28,33 @@ const clampToViewport = (left, top, width, height) => {
   };
 };
 
-const applyPosition = (element, left, top) => {
-  element.style.position = 'fixed';
-  element.style.left = `${left}px`;
-  element.style.top = `${top}px`;
-  element.style.right = 'auto';
-  element.style.bottom = 'auto';
+const getBubbleButtons = bubbleHolder =>
+  bubbleHolder.querySelectorAll('.woot-widget-bubble');
+
+const getCurrentRect = bubbleHolder => {
+  const button = bubbleHolder.querySelector(
+    '.woot-widget-bubble:not(.woot--hide)'
+  );
+  if (button) return button.getBoundingClientRect();
+  const fallback = bubbleHolder.querySelector('.woot-widget-bubble');
+  if (fallback) return fallback.getBoundingClientRect();
+  return { left: 0, top: 0, width: 64, height: 64 };
 };
 
-export const restoreBubblePosition = bubbleHolder => {
+const applyPosition = (bubbleHolder, left, top) => {
+  const buttons = getBubbleButtons(bubbleHolder);
+  buttons.forEach(el => {
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+  });
+};
+
+const restoreBubblePosition = bubbleHolder => {
   const stored = getStoredPosition();
   if (!stored) return;
-
-  const rect = bubbleHolder.getBoundingClientRect();
+  const rect = getCurrentRect(bubbleHolder);
   const width = rect.width || 64;
   const height = rect.height || 64;
   const { left, top } = clampToViewport(stored.left, stored.top, width, height);
@@ -50,46 +64,44 @@ export const restoreBubblePosition = bubbleHolder => {
 export const enableBubbleDrag = bubbleHolder => {
   if (!bubbleHolder) return;
 
-  let isDragging = false;
+  let isPointerDown = false;
   let startX = 0;
   let startY = 0;
   let initialLeft = 0;
   let initialTop = 0;
-  let moved = false;
+  let didDrag = false;
 
-  restoreBubblePosition(bubbleHolder);
-
-  const getEventPoint = event => {
-    if (event.touches && event.touches.length > 0) {
-      return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  // Wait for buttons to be added before restoring position
+  const tryRestore = () => {
+    if (bubbleHolder.querySelector('.woot-widget-bubble')) {
+      restoreBubblePosition(bubbleHolder);
+    } else {
+      setTimeout(tryRestore, 100);
     }
-    return { x: event.clientX, y: event.clientY };
   };
+  setTimeout(tryRestore, 0);
 
-  const onPointerDown = event => {
-    const point = getEventPoint(event);
-    const rect = bubbleHolder.getBoundingClientRect();
-    isDragging = true;
-    moved = false;
-    startX = point.x;
-    startY = point.y;
+  const onMouseDown = event => {
+    isPointerDown = true;
+    didDrag = false;
+    startX = event.clientX;
+    startY = event.clientY;
+    const rect = getCurrentRect(bubbleHolder);
     initialLeft = rect.left;
     initialTop = rect.top;
-    bubbleHolder.classList.add('woot--dragging');
   };
 
-  const onPointerMove = event => {
-    if (!isDragging) return;
-    const point = getEventPoint(event);
-    const dx = point.x - startX;
-    const dy = point.y - startY;
+  const onMouseMove = event => {
+    if (!isPointerDown) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
 
-    if (!moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    if (!didDrag && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
 
-    moved = true;
-    if (event.cancelable) event.preventDefault();
+    didDrag = true;
+    bubbleHolder.classList.add('woot--dragging');
 
-    const rect = bubbleHolder.getBoundingClientRect();
+    const rect = getCurrentRect(bubbleHolder);
     const { left, top } = clampToViewport(
       initialLeft + dx,
       initialTop + dy,
@@ -99,36 +111,35 @@ export const enableBubbleDrag = bubbleHolder => {
     applyPosition(bubbleHolder, left, top);
   };
 
-  const onPointerUp = event => {
-    if (!isDragging) return;
-    isDragging = false;
+  const onMouseUp = () => {
+    if (!isPointerDown) return;
+    isPointerDown = false;
     bubbleHolder.classList.remove('woot--dragging');
 
-    if (moved) {
-      const rect = bubbleHolder.getBoundingClientRect();
+    if (didDrag) {
+      const rect = getCurrentRect(bubbleHolder);
       storePosition(rect.left, rect.top);
-      // Prevent the click that follows the drag from opening the chat
-      const stopClick = e => {
-        e.stopPropagation();
-        e.preventDefault();
-        bubbleHolder.removeEventListener('click', stopClick, true);
-      };
-      bubbleHolder.addEventListener('click', stopClick, true);
     }
   };
 
-  bubbleHolder.addEventListener('mousedown', onPointerDown);
-  document.addEventListener('mousemove', onPointerMove);
-  document.addEventListener('mouseup', onPointerUp);
+  // Use capture phase only on click to swallow it after a drag
+  const onClickCapture = event => {
+    if (didDrag) {
+      event.stopPropagation();
+      event.preventDefault();
+      didDrag = false;
+    }
+  };
 
-  bubbleHolder.addEventListener('touchstart', onPointerDown, { passive: true });
-  document.addEventListener('touchmove', onPointerMove, { passive: false });
-  document.addEventListener('touchend', onPointerUp);
+  bubbleHolder.addEventListener('mousedown', onMouseDown);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+  bubbleHolder.addEventListener('click', onClickCapture, true);
 
   window.addEventListener('resize', () => {
     const stored = getStoredPosition();
     if (!stored) return;
-    const rect = bubbleHolder.getBoundingClientRect();
+    const rect = getCurrentRect(bubbleHolder);
     const { left, top } = clampToViewport(
       stored.left,
       stored.top,

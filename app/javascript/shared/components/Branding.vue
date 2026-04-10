@@ -1,11 +1,11 @@
 <script>
 import { useBranding } from 'shared/composables/useBranding';
 
-const {
-  LOGO_THUMBNAIL: logoThumbnail,
-  BRAND_NAME: brandName,
-  WIDGET_BRAND_URL: widgetBrandURL,
-} = window.globalConfig || {};
+const BRAND_NAME = 'LYN Soluciones Tec.';
+const BRAND_URL = 'https://lynsoluciones.es/chatbot/';
+const LOGO_THUMBNAIL =
+  (window.globalConfig && window.globalConfig.LOGO_THUMBNAIL) ||
+  '/brand-assets/logo_thumbnail.png';
 
 export default {
   props: {
@@ -23,29 +23,15 @@ export default {
   data() {
     return {
       globalConfig: {
-        brandName,
-        logoThumbnail,
-        widgetBrandURL,
+        brandName: BRAND_NAME,
+        logoThumbnail: LOGO_THUMBNAIL,
+        widgetBrandURL: BRAND_URL,
       },
     };
   },
   computed: {
     brandRedirectURL() {
-      try {
-        const referrerHost = this.$store.getters['appConfig/getReferrerHost'];
-        const url = new URL(this.globalConfig.widgetBrandURL);
-        if (referrerHost) {
-          url.searchParams.set('utm_source', referrerHost);
-          url.searchParams.set('utm_medium', 'widget');
-        } else {
-          url.searchParams.set('utm_medium', 'survey');
-        }
-        url.searchParams.set('utm_campaign', 'branding');
-        return url.toString();
-      } catch (e) {
-        // Suppressing the error as getter is not defined in some cases
-      }
-      return '';
+      return BRAND_URL;
     },
   },
 };
