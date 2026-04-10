@@ -1,5 +1,6 @@
 import { addClasses, removeClasses, toggleClass } from './DOMHelpers';
 import { enableBubbleDrag } from './dragHelpers';
+import { positionChatBasedOnBubble } from './resizeHelpers';
 import { IFrameHelper } from './IFrameHelper';
 import { isExpandedView } from './settingsHelper';
 import {
@@ -95,6 +96,10 @@ export const onBubbleClick = (props = {}) => {
 
   const newIsOpen = toggleValue === undefined ? !isOpen : toggleValue;
   window.$chatwoot.isOpen = newIsOpen;
+
+  if (newIsOpen && window.$chatwoot.resizableChat !== false) {
+    positionChatBasedOnBubble(widgetHolder, bubbleHolder);
+  }
 
   toggleClass(chatBubble, 'woot--hide');
   toggleClass(closeBubble, 'woot--hide');
