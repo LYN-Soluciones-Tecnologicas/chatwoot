@@ -318,108 +318,64 @@ export const SDK_CSS = `
   user-select: none;
 }
 
-.woot-resize-handle--corner {
-  width: 28px;
-  height: 28px;
-}
-
-.woot-resize-handle--corner::before {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-}
-
-.woot-resize-handle--corner:hover::before {
-  border-color: rgba(0, 0, 0, 0.7) !important;
-}
-
+/* Edges */
 .woot-resize-handle--top {
   top: 0;
-  left: 28px;
-  right: 28px;
-  height: 8px;
+  left: 14px;
+  right: 14px;
+  height: 6px;
   cursor: ns-resize;
 }
-
 .woot-resize-handle--bottom {
   bottom: 0;
-  left: 28px;
-  right: 28px;
-  height: 8px;
+  left: 14px;
+  right: 14px;
+  height: 6px;
   cursor: ns-resize;
 }
-
 .woot-resize-handle--left {
-  top: 28px;
+  top: 14px;
   left: 0;
-  bottom: 28px;
-  width: 8px;
+  bottom: 14px;
+  width: 6px;
   cursor: ew-resize;
 }
-
 .woot-resize-handle--right {
-  top: 28px;
+  top: 14px;
   right: 0;
-  bottom: 28px;
-  width: 8px;
+  bottom: 14px;
+  width: 6px;
   cursor: ew-resize;
 }
 
-/* Corner top-left */
+/* Corners */
 .woot-resize-handle--corner-top-left {
   top: 0;
   left: 0;
+  width: 14px;
+  height: 14px;
   cursor: nwse-resize;
 }
-.woot-resize-handle--corner-top-left::before {
-  top: 8px;
-  left: 8px;
-  border-top: 3px solid rgba(0, 0, 0, 0.45);
-  border-left: 3px solid rgba(0, 0, 0, 0.45);
-  border-top-left-radius: 3px;
-}
-
-/* Corner top-right */
 .woot-resize-handle--corner-top-right {
   top: 0;
   right: 0;
+  width: 14px;
+  height: 14px;
   cursor: nesw-resize;
 }
-.woot-resize-handle--corner-top-right::before {
-  top: 8px;
-  right: 8px;
-  border-top: 3px solid rgba(0, 0, 0, 0.45);
-  border-right: 3px solid rgba(0, 0, 0, 0.45);
-  border-top-right-radius: 3px;
-}
-
-/* Corner bottom-left */
 .woot-resize-handle--corner-bottom-left {
   bottom: 0;
   left: 0;
+  width: 14px;
+  height: 14px;
   cursor: nesw-resize;
 }
-.woot-resize-handle--corner-bottom-left::before {
-  bottom: 8px;
-  left: 8px;
-  border-bottom: 3px solid rgba(0, 0, 0, 0.45);
-  border-left: 3px solid rgba(0, 0, 0, 0.45);
-  border-bottom-left-radius: 3px;
-}
-
-/* Corner bottom-right */
 .woot-resize-handle--corner-bottom-right {
   bottom: 0;
   right: 0;
+  width: 14px;
+  height: 14px;
   cursor: nwse-resize;
-}
-.woot-resize-handle--corner-bottom-right::before {
-  bottom: 8px;
-  right: 8px;
-  border-bottom: 3px solid rgba(0, 0, 0, 0.45);
-  border-right: 3px solid rgba(0, 0, 0, 0.45);
-  border-bottom-right-radius: 3px;
 }
 
 @media only screen and (max-width: 667px) {
