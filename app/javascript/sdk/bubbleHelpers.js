@@ -1,4 +1,5 @@
 import { addClasses, removeClasses, toggleClass } from './DOMHelpers';
+import { enableBubbleDrag } from './dragHelpers';
 import { IFrameHelper } from './IFrameHelper';
 import { isExpandedView } from './settingsHelper';
 import {
@@ -69,6 +70,11 @@ export const createBubbleHolder = hideMessageBubble => {
   bubbleHolder.id = 'cw-bubble-holder';
   bubbleHolder.dataset.turboPermanent = true;
   body.appendChild(bubbleHolder);
+
+  if (window.$chatwoot && window.$chatwoot.draggableBubble !== false) {
+    addClasses(bubbleHolder, 'woot--draggable');
+    enableBubbleDrag(bubbleHolder);
+  }
 };
 
 const handleBubbleToggle = newIsOpen => {

@@ -35,6 +35,7 @@ import {
 } from 'shared/helpers/AudioNotificationHelper';
 import { isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
+import { enableChatResize } from './resizeHelpers';
 import addHours from 'date-fns/addHours';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
@@ -85,6 +86,12 @@ export const IFrameHelper = {
     widgetHolder.dataset.turboPermanent = true;
     widgetHolder.appendChild(iframe);
     body.appendChild(widgetHolder);
+
+    if (window.$chatwoot && window.$chatwoot.resizableChat !== false) {
+      addClasses(widgetHolder, 'woot--resizable');
+      enableChatResize(widgetHolder);
+    }
+
     IFrameHelper.initPostMessageCommunication();
     IFrameHelper.initWindowSizeListener();
     IFrameHelper.preventDefaultScroll();

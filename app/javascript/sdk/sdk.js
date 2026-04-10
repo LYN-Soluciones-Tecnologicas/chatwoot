@@ -292,4 +292,52 @@ export const SDK_CSS = `
 .woot-hidden {
   display: none !important;
 }
+
+/* ----- Custom: draggable bubble & resizable chat ----- */
+.woot--bubble-holder.woot--draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.woot--bubble-holder.woot--dragging {
+  cursor: grabbing;
+}
+
+.woot-widget-holder.woot--resizable {
+  position: relative;
+}
+
+.woot-widget-holder.woot--resizing {
+  user-select: none;
+}
+
+.woot-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  z-index: 2147483001;
+  background: transparent;
+  border-top-left-radius: 16px;
+}
+
+.woot-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid rgba(0, 0, 0, 0.35);
+  border-left: 2px solid rgba(0, 0, 0, 0.35);
+  border-top-left-radius: 2px;
+}
+
+@media only screen and (max-width: 667px) {
+  .woot-resize-handle {
+    display: none;
+  }
+}
 `;
