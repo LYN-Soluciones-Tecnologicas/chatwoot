@@ -28,6 +28,7 @@ export default {
     ...mapGetters({
       appConfig: 'appConfig/getAppConfig',
       availableAgents: 'agent/availableAgents',
+      hasAgents: 'agent/hasAgents',
     }),
     portal() {
       return window.chatwootWebChannel.portal;
@@ -44,6 +45,9 @@ export default {
       );
     },
     showBackButton() {
+      if (this.hasAgents) {
+        return false;
+      }
       return ['article-viewer', 'messages', 'prechat-form'].includes(
         this.$route.name
       );
