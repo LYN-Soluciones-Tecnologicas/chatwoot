@@ -70,5 +70,3 @@ class AgentBotListener < BaseListener
     AgentBots::WebhookJob.perform_later(agent_bot.outgoing_url, payload)
   end
 end
-
-AgentBotListener.prepend_mod_with('AgentBotListener')

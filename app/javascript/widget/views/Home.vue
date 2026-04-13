@@ -21,14 +21,6 @@ export default {
       conversationSize: 'conversation/getConversationSize',
       unreadMessageCount: 'conversation/getUnreadMessageCount',
     }),
-    hasConnectedAgentBot() {
-      return !!window.chatwootWebChannel?.hasAConnectedAgentBot;
-    },
-  },
-  mounted() {
-    if (this.hasConnectedAgentBot) {
-      this.startConversation();
-    }
   },
   methods: {
     startConversation() {

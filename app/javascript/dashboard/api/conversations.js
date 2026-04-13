@@ -13,14 +13,6 @@ class ConversationApi extends ApiClient {
   updateLabels(conversationID, labels) {
     return axios.post(`${this.url}/${conversationID}/labels`, { labels });
   }
-
-  pauseBot(conversationID) {
-    return axios.post(`${this.url}/${conversationID}/pause_bot`);
-  }
-
-  resumeBot(conversationID) {
-    return axios.post(`${this.url}/${conversationID}/resume_bot`);
-  }
 }
 
 export default new ConversationApi();
