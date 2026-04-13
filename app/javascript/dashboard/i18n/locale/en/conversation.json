@@ -1,5 +1,13 @@
 {
   "CONVERSATION": {
+    "BOT_CONTROL": {
+      "TITLE": "Bot control",
+      "PAUSE": "Pause bot",
+      "RESUME": "Resume bot",
+      "PAUSED_SUCCESS": "Bot paused for this conversation",
+      "RESUMED_SUCCESS": "Bot resumed for this conversation",
+      "ERROR": "Could not update bot state"
+    },
     "SELECT_A_CONVERSATION": "Please select a conversation from left pane",
     "CSAT_REPLY_MESSAGE": "Please rate the conversation",
     "404": "Sorry, we cannot find the conversation. Please try again",
