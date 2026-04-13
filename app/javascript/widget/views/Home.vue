@@ -18,9 +18,21 @@ export default {
   computed: {
     ...mapGetters({
       availableAgents: 'agent/availableAgents',
+      hasAgents: 'agent/hasAgents',
+      hasFetchedAgents: 'agent/getHasFetched',
       conversationSize: 'conversation/getConversationSize',
       unreadMessageCount: 'conversation/getUnreadMessageCount',
     }),
+  },
+  watch: {
+    hasFetchedAgents: {
+      immediate: true,
+      handler(fetched) {
+        if (fetched && this.hasAgents) {
+          this.startConversation();
+        }
+      },
+    },
   },
   methods: {
     startConversation() {

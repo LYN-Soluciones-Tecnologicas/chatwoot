@@ -14,6 +14,7 @@ export const getters = {
   getHasFetched: $state => $state.uiFlags.hasFetched,
   availableAgents: $state =>
     $state.records.filter(agent => agent.availability_status === 'online'),
+  hasAgents: $state => $state.records.length > 0,
 };
 
 const CACHE_KEY_PREFIX = 'chatwoot_available_agents_';
