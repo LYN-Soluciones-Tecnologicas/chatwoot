@@ -15,6 +15,8 @@ class Conversations::Exporters::BaseExporter
   protected
 
   def sender_name(message)
+    return 'yo' if message.incoming?
+
     message.sender&.try(:available_name).presence || message.sender&.try(:name).presence || 'Unknown'
   end
 
@@ -28,6 +30,10 @@ class Conversations::Exporters::BaseExporter
     else
       message.created_at.strftime('%b %d, %Y %I:%M %p %Z')
     end
+  end
+
+  def generated_at
+    "Generated: #{Time.zone.now.strftime('%b %d, %Y %I:%M %p %Z')}"
   end
 
   def attachment_names(message)

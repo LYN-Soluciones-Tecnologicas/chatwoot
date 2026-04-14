@@ -7,8 +7,8 @@ class Conversations::Exporters::PdfExporter < Conversations::Exporters::BaseExpo
     pdf.font_size 16
     pdf.text winansi_safe(document_title), style: :bold
     pdf.move_down 4
-    pdf.font_size 10
-    pdf.text winansi_safe("Generated: #{Time.zone.now.strftime('%b %d, %Y %I:%M %p %Z')}"), color: '899096'
+    pdf.font_size 11
+    pdf.text winansi_safe(generated_at), style: :bold, color: '555555'
     pdf.move_down 16
 
     @messages.each do |message|

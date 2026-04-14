@@ -72,7 +72,7 @@ export default {
       :disabled="isExporting"
       @click.stop="toggleMenu"
     >
-      <FluentIcon icon="document" size="22" class="text-n-slate-12" />
+      <FluentIcon icon="arrow-download" size="22" class="text-n-slate-12" />
     </button>
     <div
       v-if="isOpen"
@@ -89,6 +89,12 @@ export default {
         @click="handleExport('docx')"
       >
         {{ $t('EXPORT_CONVERSATION.FORMAT_DOCX') }}
+      </button>
+      <button
+        class="w-full text-left px-4 py-2 text-sm text-n-slate-12 hover:bg-n-slate-2 dark:hover:bg-n-solid-3"
+        @click="handleExport('odt')"
+      >
+        {{ $t('EXPORT_CONVERSATION.FORMAT_ODT') }}
       </button>
     </div>
   </div>

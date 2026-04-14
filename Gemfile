@@ -46,9 +46,7 @@ gem 'gmail_xoauth'
 gem 'net-smtp',  '~> 0.3.4'
 # Prevent CSV injection
 gem 'csv-safe'
-# Widget conversation export (PDF / DOCX)
-# TODO: add ODT support — rodf 1.2 does not document ODT output,
-# consider meinac/odf or LibreOffice headless conversion later.
+# Widget conversation export (PDF / DOCX / ODT)
 gem 'prawn', '~> 2.5'
 gem 'prawn-table', '~> 0.2'
 gem 'caracal', '~> 1.4'

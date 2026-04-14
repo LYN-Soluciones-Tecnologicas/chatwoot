@@ -3,14 +3,14 @@
 class Conversations::Exporters::DocxExporter < Conversations::Exporters::BaseExporter
   def render
     title = document_title
-    generated_at = "Generated: #{Time.zone.now.strftime('%b %d, %Y %I:%M %p %Z')}"
     rows = build_rows
 
     Caracal::Document.render do |docx|
       docx.h1 title
       docx.p generated_at do
-        color '899096'
-        size 18
+        bold true
+        color '555555'
+        size 22
       end
 
       rows.each do |row|

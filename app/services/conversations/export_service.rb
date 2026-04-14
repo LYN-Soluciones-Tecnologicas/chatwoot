@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class Conversations::ExportService
-  SUPPORTED_FORMATS = %w[pdf docx].freeze
+  SUPPORTED_FORMATS = %w[pdf docx odt].freeze
 
   CONTENT_TYPES = {
     'pdf' => 'application/pdf',
-    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'odt' => 'application/vnd.oasis.opendocument.text'
   }.freeze
 
   def initialize(conversation, format)
@@ -32,6 +33,7 @@ class Conversations::ExportService
     case @format
     when 'pdf'  then Conversations::Exporters::PdfExporter
     when 'docx' then Conversations::Exporters::DocxExporter
+    when 'odt'  then Conversations::Exporters::OdtExporter
     end
   end
 
