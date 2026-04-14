@@ -1037,6 +1037,17 @@ export default {
                       {{ $t('INBOX_MGMT.FEATURES.USE_INBOX_AVATAR_FOR_BOT') }}
                     </label>
                   </div>
+                  <div class="flex gap-2 py-0.5">
+                    <input
+                      v-model="selectedFeatureFlags"
+                      type="checkbox"
+                      value="export_conversation"
+                      @input="handleFeatureFlag"
+                    />
+                    <label for="export_conversation">
+                      {{ $t('INBOX_MGMT.FEATURES.EXPORT_CONVERSATION') }}
+                    </label>
+                  </div>
                 </div>
               </SettingsFieldSection>
             </SettingsAccordion>

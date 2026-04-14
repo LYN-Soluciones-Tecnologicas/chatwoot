@@ -3,12 +3,13 @@ import { mapGetters } from 'vuex';
 import { IFrameHelper, RNHelper } from 'widget/helpers/utils';
 import { popoutChatWindow } from '../helpers/popoutHelper';
 import FluentIcon from 'shared/components/FluentIcon/Index.vue';
+import ExportConversationMenu from 'widget/components/ExportConversationMenu.vue';
 import configMixin from 'widget/mixins/configMixin';
 import { CONVERSATION_STATUS } from 'shared/constants/messages';
 
 export default {
   name: 'HeaderActions',
-  components: { FluentIcon },
+  components: { FluentIcon, ExportConversationMenu },
   mixins: [configMixin],
   props: {
     showPopoutButton: {
@@ -80,6 +81,7 @@ export default {
 <!-- eslint-disable-next-line vue/no-root-v-if -->
 <template>
   <div v-if="showHeaderActions" class="actions flex items-center gap-3">
+    <ExportConversationMenu />
     <button
       v-if="
         canLeaveConversation &&

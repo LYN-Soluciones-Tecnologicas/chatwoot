@@ -116,6 +116,13 @@
     "SEND_EMAIL_SUCCESS": "La transcripción ha sido enviada",
     "SEND_EMAIL_ERROR": "Hubo un error, por favor inténtelo de nuevo"
   },
+  "EXPORT_CONVERSATION": {
+    "MENU_LABEL": "Exportar conversación",
+    "FORMAT_PDF": "Descargar como PDF",
+    "FORMAT_DOCX": "Descargar como Word (.docx)",
+    "SUCCESS": "Conversación exportada correctamente",
+    "ERROR": "Hubo un error al exportar la conversación"
+  },
   "INTEGRATIONS": {
     "DYTE": {
       "CLICK_HERE_TO_JOIN": "Haga clic aquí para unirse",

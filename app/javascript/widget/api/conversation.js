@@ -67,6 +67,35 @@ const deleteCustomAttribute = async customAttribute => {
   );
 };
 
+const parseFilenameFromContentDisposition = disposition => {
+  if (!disposition) return null;
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  return match ? match[1] : null;
+};
+
+const exportConversation = async format => {
+  const separator = window.location.search ? '&' : '?';
+  const response = await API.get(
+    `/api/v1/widget/conversations/export${window.location.search}${separator}format_type=${format}`,
+    { responseType: 'blob' }
+  );
+
+  const contentType =
+    response.headers['content-type'] || 'application/octet-stream';
+  const blob = new Blob([response.data], { type: contentType });
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download =
+    parseFilenameFromContentDisposition(
+      response.headers['content-disposition']
+    ) || `conversation.${format}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(downloadUrl);
+};
+
 export {
   createConversationAPI,
   sendMessageAPI,
@@ -79,4 +108,5 @@ export {
   toggleStatus,
   setCustomAttributes,
   deleteCustomAttribute,
+  exportConversation,
 };

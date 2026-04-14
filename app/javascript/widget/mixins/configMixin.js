@@ -23,6 +23,9 @@ export default {
     hasEndConversationEnabled() {
       return this.channelConfig.enabledFeatures.includes('end_conversation');
     },
+    hasExportConversationEnabled() {
+      return this.channelConfig.enabledFeatures.includes('export_conversation');
+    },
     preChatFormEnabled() {
       return window.chatwootWebChannel.preChatFormEnabled;
     },

@@ -405,6 +405,7 @@ Rails.application.routes.draw do
             post :toggle_typing
             post :transcript
             get  :toggle_status
+            get  :export
           end
         end
         resource :contact, only: [:show, :update] do

@@ -43,6 +43,21 @@ class Api::V1::Widget::ConversationsController < Api::V1::Widget::BaseController
     head :ok
   end
 
+  def export
+    return head :not_found if conversation.blank?
+    return head :forbidden unless @web_widget.export_conversation?
+    return head :unprocessable_entity unless Conversations::ExportService::SUPPORTED_FORMATS.include?(params[:format_type].to_s)
+
+    service = Conversations::ExportService.new(conversation, params[:format_type])
+    send_data service.perform,
+              filename: service.filename,
+              type: service.content_type,
+              disposition: 'attachment'
+  rescue StandardError => e
+    Rails.logger.error("Widget conversation export failed: #{e.class}: #{e.message}")
+    head :internal_server_error
+  end
+
   def toggle_typing
     case permitted_params[:typing_status]
     when 'on'
