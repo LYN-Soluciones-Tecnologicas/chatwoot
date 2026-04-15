@@ -704,7 +704,7 @@
       "DISPLAY_EMOJI_PICKER": "Display emoji picker on the widget",
       "ALLOW_END_CONVERSATION": "Allow users to end conversation from the widget",
       "USE_INBOX_AVATAR_FOR_BOT": "Use inbox name and avatar for the bot",
-      "EXPORT_CONVERSATION": "Allow users to export the conversation (PDF, Word) from the widget"
+      "EXPORT_CONVERSATION": "Allow users to export the conversation (PDF, Word, ODT, HTML) from the widget"
     },
     "SETTINGS_POPUP": {
       "MESSENGER_HEADING": "Messenger Script",

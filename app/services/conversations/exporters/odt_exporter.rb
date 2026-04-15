@@ -30,6 +30,15 @@ class Conversations::Exporters::OdtExporter < Conversations::Exporters::BaseExpo
           <style:style style:name="GeneratedAt" style:family="paragraph">
             <style:text-properties fo:font-size="11pt" fo:font-weight="bold" fo:color="#555555"/>
           </style:style>
+          <style:style style:name="Sender" style:family="paragraph">
+            <style:text-properties fo:font-size="11pt" fo:font-weight="bold"/>
+          </style:style>
+          <style:style style:name="Attachments" style:family="paragraph">
+            <style:text-properties fo:font-size="10pt" fo:font-style="italic" fo:color="#555555"/>
+          </style:style>
+          <style:style style:name="Meta" style:family="paragraph">
+            <style:text-properties fo:font-size="9pt" fo:color="#899096"/>
+          </style:style>
         </office:automatic-styles>
         <office:body>
           <office:text>
@@ -44,13 +53,13 @@ class Conversations::Exporters::OdtExporter < Conversations::Exporters::BaseExpo
 
   def row_xml(message)
     attachments = attachment_names(message)
-    attachment_text = attachments.any? ? "Attachments: #{attachments.join(', ')}" : nil
+    attachment_text = attachments.any? ? "Adjuntos: #{attachments.join(', ')}" : nil
 
     [
-      "<text:p>#{xml_text(sender_name(message))}</text:p>",
+      %(<text:p text:style-name="Sender">#{xml_text(sender_name(message))}</text:p>),
       message_text(message).present? ? "<text:p>#{xml_text(message_text(message))}</text:p>" : nil,
-      attachment_text.present? ? "<text:p>#{xml_text(attachment_text)}</text:p>" : nil,
-      "<text:p>#{xml_text(formatted_timestamp(message))}</text:p>",
+      attachment_text.present? ? %(<text:p text:style-name="Attachments">#{xml_text(attachment_text)}</text:p>) : nil,
+      %(<text:p text:style-name="Meta">#{xml_text(formatted_timestamp(message))}</text:p>),
       '<text:p/>'
     ].compact.join("\n")
   end
@@ -99,8 +108,9 @@ class Conversations::Exporters::OdtExporter < Conversations::Exporters::BaseExpo
         central_directory << central_directory_header(name, content, offset)
       end
 
+      cd_offset = file_data.bytesize
       file_data << central_directory
-      file_data << end_of_central_directory(central_directory)
+      file_data << end_of_central_directory(central_directory, cd_offset)
       file_data
     end
 
@@ -117,14 +127,10 @@ class Conversations::Exporters::OdtExporter < Conversations::Exporters::BaseExpo
        name.bytesize, 0, 0, 0, 0, 0, offset].pack('VvvvvvvVVVvvvvvVV') + name
     end
 
-    def end_of_central_directory(central_directory)
+    def end_of_central_directory(central_directory, cd_offset)
       [
-        END_OF_CENTRAL_DIRECTORY, 0, 0, @entries.size, @entries.size, central_directory.bytesize, central_directory_offset, 0
+        END_OF_CENTRAL_DIRECTORY, 0, 0, @entries.size, @entries.size, central_directory.bytesize, cd_offset, 0
       ].pack('VvvvvVVv')
-    end
-
-    def central_directory_offset
-      @entries.sum { |name, content| local_file_header(name, content).bytesize + content.bytesize }
     end
 
     def checksum(content)

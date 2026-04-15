@@ -120,6 +120,8 @@
     "MENU_LABEL": "Exportar conversación",
     "FORMAT_PDF": "Descargar como PDF",
     "FORMAT_DOCX": "Descargar como Word (.docx)",
+    "FORMAT_ODT": "Descargar como OpenDocument (.odt)",
+    "FORMAT_HTML": "Descargar como HTML",
     "SUCCESS": "Conversación exportada correctamente",
     "ERROR": "Hubo un error al exportar la conversación"
   },

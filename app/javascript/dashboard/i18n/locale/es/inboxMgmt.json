@@ -704,7 +704,7 @@
       "DISPLAY_EMOJI_PICKER": "Mostrar el selector de emoji en el widget",
       "ALLOW_END_CONVERSATION": "Permitir a los usuarios finalizar conversaciones desde el widget",
       "USE_INBOX_AVATAR_FOR_BOT": "Usar nombre de bandeja de entrada y avatar para el bot",
-      "EXPORT_CONVERSATION": "Permitir a los usuarios exportar la conversación (PDF, Word) desde el widget"
+      "EXPORT_CONVERSATION": "Permitir a los usuarios exportar la conversación (PDF, Word, ODT, HTML) desde el widget"
     },
     "SETTINGS_POPUP": {
       "MESSENGER_HEADING": "Script de Messenger",

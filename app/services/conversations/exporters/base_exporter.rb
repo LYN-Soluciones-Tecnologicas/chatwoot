@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Conversations::Exporters::BaseExporter
+  SPANISH_MONTHS = %w[enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre].freeze
+
   def initialize(data)
     @conversation = data[:conversation]
     @title = data[:title]
@@ -17,7 +19,7 @@ class Conversations::Exporters::BaseExporter
   def sender_name(message)
     return 'yo' if message.incoming?
 
-    message.sender&.try(:available_name).presence || message.sender&.try(:name).presence || 'Unknown'
+    message.sender&.try(:available_name).presence || message.sender&.try(:name).presence || 'Desconocido'
   end
 
   def message_text(message)
@@ -25,15 +27,21 @@ class Conversations::Exporters::BaseExporter
   end
 
   def formatted_timestamp(message)
-    if @timezone.present?
-      message.created_at.in_time_zone(@timezone).strftime('%b %d, %Y %I:%M %p %Z')
-    else
-      message.created_at.strftime('%b %d, %Y %I:%M %p %Z')
-    end
+    human_date(in_inbox_timezone(message.created_at))
   end
 
   def generated_at
-    "Generated: #{Time.zone.now.strftime('%b %d, %Y %I:%M %p %Z')}"
+    "Generado el #{human_date(in_inbox_timezone(Time.current))}"
+  end
+
+  def human_date(time)
+    day = time.strftime('%-d')
+    month = SPANISH_MONTHS[time.month - 1]
+    "#{day} de #{month} de #{time.strftime('%Y')} a las #{time.strftime('%H:%M')}"
+  end
+
+  def in_inbox_timezone(time)
+    @timezone.present? ? time.in_time_zone(@timezone) : time
   end
 
   def attachment_names(message)
@@ -43,7 +51,7 @@ class Conversations::Exporters::BaseExporter
   end
 
   def document_title
-    "#{@title} - Conversation ##{@conversation.display_id}"
+    "#{@title} - Conversación ##{@conversation.display_id}"
   end
 
   # Prawn's built-in fonts only support WinAnsi (Windows-1252). Any character

@@ -3,11 +3,12 @@
 class Conversations::Exporters::DocxExporter < Conversations::Exporters::BaseExporter
   def render
     title = document_title
+    generated_label = generated_at
     rows = build_rows
 
     Caracal::Document.render do |docx|
       docx.h1 title
-      docx.p generated_at do
+      docx.p generated_label do
         bold true
         color '555555'
         size 22
@@ -47,7 +48,7 @@ class Conversations::Exporters::DocxExporter < Conversations::Exporters::BaseExp
       {
         sender: sender_name(message),
         text: message_text(message),
-        attachments: attachments.any? ? "Attachments: #{attachments.join(', ')}" : nil,
+        attachments: attachments.any? ? "Adjuntos: #{attachments.join(', ')}" : nil,
         timestamp: formatted_timestamp(message)
       }
     end

@@ -22,7 +22,7 @@ class Conversations::Exporters::PdfExporter < Conversations::Exporters::BaseExpo
       attachments = attachment_names(message)
       if attachments.any?
         pdf.move_down 2
-        pdf.text winansi_safe("Attachments: #{attachments.join(', ')}"), style: :italic, color: '555555'
+        pdf.text winansi_safe("Adjuntos: #{attachments.join(', ')}"), style: :italic, color: '555555'
       end
 
       pdf.move_down 2
