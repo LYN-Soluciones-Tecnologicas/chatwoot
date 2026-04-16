@@ -35,7 +35,7 @@ import {
 } from 'shared/helpers/AudioNotificationHelper';
 import { isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
-import { enableChatResize } from './resizeHelpers';
+import { enableChatResize, setChatFullscreen } from './resizeHelpers';
 import addHours from 'date-fns/addHours';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
@@ -247,15 +247,23 @@ export const IFrameHelper = {
     },
 
     closeWindow: () => {
+      setChatFullscreen(widgetHolder, bubbleHolder, false);
       onBubbleClick({ toggleValue: false });
       removeUnreadClass();
     },
 
     onBubbleToggle: isOpen => {
+      if (!isOpen) {
+        IFrameHelper.sendMessage('toggle-fullscreen', { isFullscreen: false });
+      }
       IFrameHelper.sendMessage('toggle-open', { isOpen });
       if (isOpen) {
         IFrameHelper.pushEvent('webwidget.triggered');
       }
+    },
+    toggleFullscreen: ({ isFullscreen }) => {
+      setChatFullscreen(widgetHolder, bubbleHolder, isFullscreen);
+      IFrameHelper.sendMessage('toggle-fullscreen', { isFullscreen });
     },
     onLocationChange: ({ referrerURL, referrerHost }) => {
       IFrameHelper.sendMessage('change-url', {
@@ -292,6 +300,7 @@ export const IFrameHelper = {
     },
 
     closeChat: () => {
+      setChatFullscreen(widgetHolder, bubbleHolder, false);
       onBubbleClick({ toggleValue: false });
     },
 

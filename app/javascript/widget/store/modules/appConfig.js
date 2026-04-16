@@ -5,6 +5,8 @@ import {
   SET_WIDGET_APP_CONFIG,
   SET_WIDGET_COLOR,
   TOGGLE_WIDGET_OPEN,
+  TOGGLE_WIDGET_FULLSCREEN,
+  TOGGLE_WIDGET_MOBILE,
   SET_ROUTE_UPDATE_STATE,
 } from '../types';
 
@@ -14,6 +16,8 @@ const state = {
   showUnreadMessagesDialog: true,
   isWebWidgetTriggered: false,
   isWidgetOpen: false,
+  isWidgetFullscreen: false,
+  isMobile: false,
   position: 'right',
   referrerHost: '',
   showPopoutButton: false,
@@ -35,6 +39,8 @@ export const getters = {
   isRightAligned: $state => $state.position === 'right',
   getHideMessageBubble: $state => $state.hideMessageBubble,
   getIsWidgetOpen: $state => $state.isWidgetOpen,
+  getIsWidgetFullscreen: $state => $state.isWidgetFullscreen,
+  getIsMobile: $state => $state.isMobile,
   getWidgetColor: $state => $state.widgetColor,
   getReferrerHost: $state => $state.referrerHost,
   isWidgetStyleFlat: $state => $state.widgetStyle === 'flat',
@@ -88,6 +94,12 @@ export const actions = {
   toggleWidgetOpen({ commit }, isWidgetOpen) {
     commit(TOGGLE_WIDGET_OPEN, isWidgetOpen);
   },
+  toggleWidgetFullscreen({ commit }, isWidgetFullscreen) {
+    commit(TOGGLE_WIDGET_FULLSCREEN, isWidgetFullscreen);
+  },
+  toggleWidgetMobile({ commit }, isMobile) {
+    commit(TOGGLE_WIDGET_MOBILE, isMobile);
+  },
   setWidgetColor({ commit }, widgetColor) {
     commit(SET_WIDGET_COLOR, widgetColor);
   },
@@ -128,6 +140,12 @@ export const mutations = {
   },
   [TOGGLE_WIDGET_OPEN]($state, isWidgetOpen) {
     $state.isWidgetOpen = isWidgetOpen;
+  },
+  [TOGGLE_WIDGET_FULLSCREEN]($state, isWidgetFullscreen) {
+    $state.isWidgetFullscreen = isWidgetFullscreen;
+  },
+  [TOGGLE_WIDGET_MOBILE]($state, isMobile) {
+    $state.isMobile = isMobile;
   },
   [SET_WIDGET_COLOR]($state, widgetColor) {
     $state.widgetColor = widgetColor;

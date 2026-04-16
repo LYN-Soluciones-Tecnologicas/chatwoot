@@ -21,6 +21,11 @@ export const SDK_CSS = `
   border: 1px solid var(--b-100);
 }
 
+.woot-widget-holder.woot-widget-holder--fullscreen {
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
 .woot-widget-holder iframe {
   border: 0;
   color-scheme: normal;
@@ -203,6 +208,14 @@ export const SDK_CSS = `
   transition: transform 300ms ease, opacity 200ms ease, visibility 0ms linear 500ms, bottom 0ms ease 200ms;
 }
 
+.woot--bubble-holder.woot--fullscreen .woot-widget-bubble.woot--close {
+  bottom: -100vh !important;
+  top: unset !important;
+  opacity: 0;
+  visibility: hidden !important;
+  z-index: -1 !important;
+}
+
 .woot-widget-bubble {
   transform-origin: center;
   will-change: transform, opacity;
@@ -309,6 +322,10 @@ export const SDK_CSS = `
 
 .woot-widget-holder.woot--resizing {
   user-select: none;
+}
+
+.woot-widget-holder.woot-widget-holder--fullscreen .woot-resize-handle {
+  display: none;
 }
 
 .woot-resize-handle {

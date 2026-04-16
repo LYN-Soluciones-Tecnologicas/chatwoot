@@ -38,7 +38,6 @@ export default {
   },
   data() {
     return {
-      isMobile: false,
       campaignsSnoozedTill: undefined,
     };
   },
@@ -47,9 +46,11 @@ export default {
       activeCampaign: 'campaign/getActiveCampaign',
       conversationSize: 'conversation/getConversationSize',
       hideMessageBubble: 'appConfig/getHideMessageBubble',
+      isMobile: 'appConfig/getIsMobile',
       isFetchingList: 'conversation/getIsFetchingList',
       isRightAligned: 'appConfig/isRightAligned',
       isWidgetOpen: 'appConfig/getIsWidgetOpen',
+      isWidgetFullscreen: 'appConfig/getIsWidgetFullscreen',
       messageCount: 'conversation/getMessageCount',
       unreadMessageCount: 'conversation/getUnreadMessageCount',
       isWidgetStyleFlat: 'appConfig/isWidgetStyleFlat',
@@ -107,6 +108,8 @@ export default {
       'setWidgetColor',
       'setBubbleVisibility',
       'setColorScheme',
+      'toggleWidgetFullscreen',
+      'toggleWidgetMobile',
     ]),
     ...mapActions('conversation', ['fetchOldConversations']),
     ...mapActions('campaign', [
@@ -282,7 +285,9 @@ export default {
           window.referrerURL = referrerURL;
           this.setReferrerHost(referrerHost);
         } else if (message.event === 'toggle-close-button') {
-          this.isMobile = message.isMobile;
+          this.toggleWidgetMobile(message.isMobile);
+        } else if (message.event === 'toggle-fullscreen') {
+          this.toggleWidgetFullscreen(message.isFullscreen);
         } else if (message.event === 'push-event') {
           this.createWidgetEvents(message);
         } else if (message.event === 'set-label') {
@@ -318,6 +323,9 @@ export default {
           this.setColorScheme(message.darkMode);
         } else if (message.event === 'toggle-open') {
           this.$store.dispatch('appConfig/toggleWidgetOpen', message.isOpen);
+          if (!message.isOpen) {
+            this.toggleWidgetFullscreen(false);
+          }
 
           const shouldShowMessageView =
             ['home'].includes(this.$route.name) &&
@@ -371,6 +379,7 @@ export default {
     class="flex flex-col justify-end h-full"
     :class="{
       'is-mobile': isMobile,
+      'is-widget-fullscreen': isWidgetFullscreen,
       'is-widget-right': isRightAligned,
       'is-bubble-hidden': hideMessageBubble,
       'is-flat-design': isWidgetStyleFlat,

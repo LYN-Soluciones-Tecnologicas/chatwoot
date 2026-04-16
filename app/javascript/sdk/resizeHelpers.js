@@ -56,7 +56,12 @@ const QUADRANT_TRANSFORM_ORIGIN = {
 /**
  * Compute initial chat box (left, top, width, height) based on bubble quadrant
  */
-const computeInitialBox = (bubbleRect, quadrant, desiredWidth, desiredHeight) => {
+const computeInitialBox = (
+  bubbleRect,
+  quadrant,
+  desiredWidth,
+  desiredHeight
+) => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   let left;
@@ -67,19 +72,13 @@ const computeInitialBox = (bubbleRect, quadrant, desiredWidth, desiredHeight) =>
   switch (quadrant) {
     case 'bottom-right':
       width = Math.min(width, bubbleRect.right - VIEWPORT_PADDING);
-      height = Math.min(
-        height,
-        bubbleRect.top - BUBBLE_GAP - VIEWPORT_PADDING
-      );
+      height = Math.min(height, bubbleRect.top - BUBBLE_GAP - VIEWPORT_PADDING);
       left = bubbleRect.right - width;
       top = bubbleRect.top - BUBBLE_GAP - height;
       break;
     case 'bottom-left':
       width = Math.min(width, vw - bubbleRect.left - VIEWPORT_PADDING);
-      height = Math.min(
-        height,
-        bubbleRect.top - BUBBLE_GAP - VIEWPORT_PADDING
-      );
+      height = Math.min(height, bubbleRect.top - BUBBLE_GAP - VIEWPORT_PADDING);
       left = bubbleRect.left;
       top = bubbleRect.top - BUBBLE_GAP - height;
       break;
@@ -110,6 +109,7 @@ const computeInitialBox = (bubbleRect, quadrant, desiredWidth, desiredHeight) =>
 };
 
 const applyBox = (holder, box) => {
+  holder.style.removeProperty('border-radius');
   holder.style.setProperty('position', 'fixed', 'important');
   holder.style.setProperty('left', `${box.left}px`, 'important');
   holder.style.setProperty('top', `${box.top}px`, 'important');
@@ -119,6 +119,20 @@ const applyBox = (holder, box) => {
   holder.style.setProperty('height', `${box.height}px`, 'important');
   holder.style.setProperty('max-height', `${box.height}px`, 'important');
   holder.style.setProperty('min-height', `${MIN_HEIGHT}px`, 'important');
+};
+
+const applyFullscreenBox = holder => {
+  holder.style.setProperty('position', 'fixed', 'important');
+  holder.style.setProperty('left', '0', 'important');
+  holder.style.setProperty('top', '0', 'important');
+  holder.style.setProperty('right', '0', 'important');
+  holder.style.setProperty('bottom', '0', 'important');
+  holder.style.setProperty('width', '100%', 'important');
+  holder.style.setProperty('height', '100%', 'important');
+  holder.style.setProperty('max-height', '100vh', 'important');
+  holder.style.setProperty('min-height', '100%', 'important');
+  holder.style.setProperty('border-radius', '0', 'important');
+  holder.style.setProperty('transform-origin', 'center', 'important');
 };
 
 const removeAllHandles = holder => {
@@ -232,10 +246,7 @@ const createHandle = (holder, definition) => {
       top = VIEWPORT_PADDING;
     }
     if (left + width > window.innerWidth - VIEWPORT_PADDING) {
-      width = Math.max(
-        MIN_WIDTH,
-        window.innerWidth - VIEWPORT_PADDING - left
-      );
+      width = Math.max(MIN_WIDTH, window.innerWidth - VIEWPORT_PADDING - left);
     }
     if (top + height > window.innerHeight - VIEWPORT_PADDING) {
       height = Math.max(
@@ -276,6 +287,11 @@ const createAllHandles = holder => {
 
 export const positionChatBasedOnBubble = (holder, bubbleHolder) => {
   if (!holder || !bubbleHolder) return;
+  if (window.$chatwoot?.isFullscreen) {
+    applyFullscreenBox(holder);
+    removeAllHandles(holder);
+    return;
+  }
   if (isMobile()) {
     holder.style.cssText = '';
     removeAllHandles(holder);
@@ -287,7 +303,12 @@ export const positionChatBasedOnBubble = (holder, bubbleHolder) => {
 
   const quadrant = getQuadrant(bubbleRect);
   const stored = getStoredSize() || { width: 400, height: 600 };
-  const box = computeInitialBox(bubbleRect, quadrant, stored.width, stored.height);
+  const box = computeInitialBox(
+    bubbleRect,
+    quadrant,
+    stored.width,
+    stored.height
+  );
 
   applyBox(holder, box);
   holder.style.setProperty(
@@ -297,6 +318,33 @@ export const positionChatBasedOnBubble = (holder, bubbleHolder) => {
   );
 
   createAllHandles(holder);
+};
+
+export const setChatFullscreen = (holder, bubbleHolder, isFullscreen) => {
+  if (!holder || !bubbleHolder) return;
+  window.$chatwoot.isFullscreen = isFullscreen;
+
+  if (isFullscreen) {
+    holder.classList.add('woot-widget-holder--fullscreen');
+    bubbleHolder.classList.add('woot--fullscreen');
+    applyFullscreenBox(holder);
+    removeAllHandles(holder);
+    return;
+  }
+
+  holder.classList.remove('woot-widget-holder--fullscreen');
+  bubbleHolder.classList.remove('woot--fullscreen');
+
+  if (
+    window.$chatwoot.isOpen &&
+    !isMobile() &&
+    window.$chatwoot.resizableChat !== false
+  ) {
+    positionChatBasedOnBubble(holder, bubbleHolder);
+  } else {
+    holder.style.cssText = '';
+    removeAllHandles(holder);
+  }
 };
 
 export const enableChatResize = holder => {
@@ -310,6 +358,11 @@ export const enableChatResize = holder => {
     }
     if (!window.$chatwoot || !window.$chatwoot.isOpen) return;
     const bubbleHolder = document.querySelector('.woot--bubble-holder');
-    if (bubbleHolder) positionChatBasedOnBubble(holder, bubbleHolder);
+    if (!bubbleHolder) return;
+    if (window.$chatwoot.isFullscreen) {
+      setChatFullscreen(holder, bubbleHolder, true);
+    } else {
+      positionChatBasedOnBubble(holder, bubbleHolder);
+    }
   });
 };

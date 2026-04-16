@@ -25,6 +25,9 @@ export default {
     ...mapGetters({
       conversationAttributes: 'conversationAttributes/getConversationParams',
       canUserEndConversation: 'appConfig/getCanUserEndConversation',
+      hideMessageBubble: 'appConfig/getHideMessageBubble',
+      isMobile: 'appConfig/getIsMobile',
+      isWidgetFullscreen: 'appConfig/getIsWidgetFullscreen',
     }),
     canLeaveConversation() {
       return [
@@ -47,6 +50,27 @@ export default {
     },
     hasWidgetOptions() {
       return this.showPopoutButton || this.conversationStatus === 'open';
+    },
+    showCloseButton() {
+      return (
+        this.isMobile ||
+        this.isRNWebView ||
+        this.hideMessageBubble ||
+        this.isWidgetFullscreen
+      );
+    },
+    showPopoutAction() {
+      return (
+        this.showPopoutButton && !this.isMobile && !this.isWidgetFullscreen
+      );
+    },
+    showFullscreenButton() {
+      return this.isIframe && !this.isRNWebView && !this.isMobile;
+    },
+    fullscreenButtonTitle() {
+      return this.isWidgetFullscreen
+        ? this.$t('COLLAPSE_CHAT')
+        : this.$t('EXPAND_CHAT');
     },
   },
   methods: {
@@ -74,6 +98,12 @@ export default {
     resolveConversation() {
       this.$store.dispatch('conversation/resolveConversation');
     },
+    toggleFullscreen() {
+      IFrameHelper.sendMessage({
+        event: 'toggleFullscreen',
+        isFullscreen: !this.isWidgetFullscreen,
+      });
+    },
   },
 };
 </script>
@@ -96,32 +126,34 @@ export default {
       <FluentIcon icon="sign-out" size="22" class="text-n-slate-12" />
     </button>
     <button
-      v-if="showPopoutButton"
+      v-if="showPopoutAction"
       class="button transparent compact new-window--button"
+      :title="$t('OPEN_CHAT')"
       @click="popoutWindow"
     >
       <FluentIcon icon="open" size="22" class="text-n-slate-12" />
     </button>
     <button
+      v-if="showFullscreenButton"
+      class="button transparent compact fullscreen-button"
+      :title="fullscreenButtonTitle"
+      :aria-label="fullscreenButtonTitle"
+      @click="toggleFullscreen"
+    >
+      <FluentIcon
+        :icon="isWidgetFullscreen ? 'collapse' : 'expand'"
+        size="22"
+        class="text-n-slate-12"
+      />
+    </button>
+    <button
+      v-if="showCloseButton"
       class="button transparent compact close-button"
-      :class="{
-        'rn-close-button': isRNWebView,
-      }"
+      :title="$t('CLOSE_CHAT')"
+      :aria-label="$t('CLOSE_CHAT')"
       @click="closeWindow"
     >
       <FluentIcon icon="dismiss" size="24" class="text-n-slate-12" />
     </button>
   </div>
 </template>
-
-<style scoped lang="scss">
-.actions {
-  .close-button {
-    display: none;
-  }
-
-  .rn-close-button {
-    display: block !important;
-  }
-}
-</style>
