@@ -1,3 +1,5 @@
+import { MOBILE_BREAKPOINT } from './constants';
+
 export const SDK_CSS = `
 :root {
   --b-100: #F2F3F7;
@@ -149,7 +151,7 @@ export const SDK_CSS = `
   fill: var(--s-700);
 }
 
-@media only screen and (min-width: 667px) {
+@media only screen and (min-width: ${MOBILE_BREAKPOINT}px) {
   .woot-widget-holder.woot-elements--left {
     left: 20px;
  }
@@ -252,7 +254,7 @@ export const SDK_CSS = `
   transition: transform 300ms ease, opacity 200ms ease, visibility 0ms linear 500ms, bottom 0ms ease 200ms;
 }
 
-@media only screen and (max-width: 667px) {
+@media only screen and (max-width: ${MOBILE_BREAKPOINT}px) {
   .woot-widget-holder {
     height: 100%;
     right: 0;
@@ -291,7 +293,7 @@ export const SDK_CSS = `
   }
 }
 
-@media only screen and (min-width: 667px) {
+@media only screen and (min-width: ${MOBILE_BREAKPOINT}px) {
   .woot-widget-holder {
     border-radius: 16px;
     bottom: 104px;
@@ -395,7 +397,7 @@ export const SDK_CSS = `
   cursor: nwse-resize;
 }
 
-@media only screen and (max-width: 667px) {
+@media only screen and (max-width: ${MOBILE_BREAKPOINT}px) {
   .woot-resize-handle {
     display: none;
   }

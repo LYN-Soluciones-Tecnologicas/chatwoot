@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
+import { MOBILE_BREAKPOINT } from './constants';
+
 const SIZE_STORAGE_KEY = 'chatwoot-chat-size';
 const MIN_WIDTH = 320;
 const MIN_HEIGHT = 400;
-const MOBILE_BREAKPOINT = 667;
 const BUBBLE_GAP = 16;
 const VIEWPORT_PADDING = 8;
 
@@ -23,7 +24,8 @@ const storeSize = (width, height) => {
   }
 };
 
-const isMobile = () => window.innerWidth < MOBILE_BREAKPOINT;
+export const isMobileViewport = () =>
+  window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
 
 const getBubbleRect = bubbleHolder => {
   const button = bubbleHolder.querySelector(
@@ -178,7 +180,7 @@ const createHandle = (holder, definition) => {
   let startBox = null;
 
   const onMouseDown = event => {
-    if (isMobile()) return;
+    if (isMobileViewport()) return;
     event.preventDefault();
     event.stopPropagation();
     const rect = holder.getBoundingClientRect();
@@ -292,7 +294,7 @@ export const positionChatBasedOnBubble = (holder, bubbleHolder) => {
     removeAllHandles(holder);
     return;
   }
-  if (isMobile()) {
+  if (isMobileViewport()) {
     holder.style.cssText = '';
     removeAllHandles(holder);
     return;
@@ -337,7 +339,7 @@ export const setChatFullscreen = (holder, bubbleHolder, isFullscreen) => {
 
   if (
     window.$chatwoot.isOpen &&
-    !isMobile() &&
+    !isMobileViewport() &&
     window.$chatwoot.resizableChat !== false
   ) {
     positionChatBasedOnBubble(holder, bubbleHolder);
@@ -351,7 +353,7 @@ export const enableChatResize = holder => {
   if (!holder) return;
 
   window.addEventListener('resize', () => {
-    if (isMobile()) {
+    if (isMobileViewport()) {
       holder.style.cssText = '';
       removeAllHandles(holder);
       return;

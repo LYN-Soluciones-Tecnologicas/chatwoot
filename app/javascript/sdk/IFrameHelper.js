@@ -35,7 +35,11 @@ import {
 } from 'shared/helpers/AudioNotificationHelper';
 import { isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
-import { enableChatResize, setChatFullscreen } from './resizeHelpers';
+import {
+  enableChatResize,
+  isMobileViewport,
+  setChatFullscreen,
+} from './resizeHelpers';
 import addHours from 'date-fns/addHours';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
@@ -352,10 +356,8 @@ export const IFrameHelper = {
     onClickChatBubble();
   },
   toggleCloseButton: () => {
-    let isMobile = false;
-    if (window.matchMedia('(max-width: 668px)').matches) {
-      isMobile = true;
-    }
-    IFrameHelper.sendMessage('toggle-close-button', { isMobile });
+    IFrameHelper.sendMessage('toggle-close-button', {
+      isMobile: isMobileViewport(),
+    });
   },
 };

@@ -1,110 +1,108 @@
-<script>
-import { mapGetters } from 'vuex';
+<script setup>
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useStore } from 'vuex';
 import { IFrameHelper, RNHelper } from 'widget/helpers/utils';
 import { popoutChatWindow } from '../helpers/popoutHelper';
 import FluentIcon from 'shared/components/FluentIcon/Index.vue';
 import ExportConversationMenu from 'widget/components/ExportConversationMenu.vue';
-import configMixin from 'widget/mixins/configMixin';
 import { CONVERSATION_STATUS } from 'shared/constants/messages';
 
-export default {
-  name: 'HeaderActions',
-  components: { FluentIcon, ExportConversationMenu },
-  mixins: [configMixin],
-  props: {
-    showPopoutButton: {
-      type: Boolean,
-      default: false,
-    },
-    showEndConversationButton: {
-      type: Boolean,
-      default: true,
-    },
+const props = defineProps({
+  showPopoutButton: {
+    type: Boolean,
+    default: false,
   },
-  computed: {
-    ...mapGetters({
-      conversationAttributes: 'conversationAttributes/getConversationParams',
-      canUserEndConversation: 'appConfig/getCanUserEndConversation',
-      hideMessageBubble: 'appConfig/getHideMessageBubble',
-      isMobile: 'appConfig/getIsMobile',
-      isWidgetFullscreen: 'appConfig/getIsWidgetFullscreen',
-    }),
-    canLeaveConversation() {
-      return [
-        CONVERSATION_STATUS.OPEN,
-        CONVERSATION_STATUS.SNOOZED,
-        CONVERSATION_STATUS.PENDING,
-      ].includes(this.conversationStatus);
-    },
-    isIframe() {
-      return IFrameHelper.isIFrame();
-    },
-    isRNWebView() {
-      return RNHelper.isRNWebView();
-    },
-    showHeaderActions() {
-      return this.isIframe || this.isRNWebView || this.hasWidgetOptions;
-    },
-    conversationStatus() {
-      return this.conversationAttributes.status;
-    },
-    hasWidgetOptions() {
-      return this.showPopoutButton || this.conversationStatus === 'open';
-    },
-    showCloseButton() {
-      return (
-        this.isMobile ||
-        this.isRNWebView ||
-        this.hideMessageBubble ||
-        this.isWidgetFullscreen
-      );
-    },
-    showPopoutAction() {
-      return (
-        this.showPopoutButton && !this.isMobile && !this.isWidgetFullscreen
-      );
-    },
-    showFullscreenButton() {
-      return this.isIframe && !this.isRNWebView && !this.isMobile;
-    },
-    fullscreenButtonTitle() {
-      return this.isWidgetFullscreen
-        ? this.$t('COLLAPSE_CHAT')
-        : this.$t('EXPAND_CHAT');
-    },
+  showEndConversationButton: {
+    type: Boolean,
+    default: true,
   },
-  methods: {
-    popoutWindow() {
-      this.closeWindow();
-      const {
-        location: { origin },
-        chatwootWebChannel: { websiteToken },
-        authToken,
-      } = window;
-      popoutChatWindow(
-        origin,
-        websiteToken,
-        this.$root.$i18n.locale,
-        authToken
-      );
-    },
-    closeWindow() {
-      if (IFrameHelper.isIFrame()) {
-        IFrameHelper.sendMessage({ event: 'closeWindow' });
-      } else if (RNHelper.isRNWebView) {
-        RNHelper.sendMessage({ type: 'close-widget' });
-      }
-    },
-    resolveConversation() {
-      this.$store.dispatch('conversation/resolveConversation');
-    },
-    toggleFullscreen() {
-      IFrameHelper.sendMessage({
-        event: 'toggleFullscreen',
-        isFullscreen: !this.isWidgetFullscreen,
-      });
-    },
-  },
+});
+
+const store = useStore();
+const { locale, t } = useI18n();
+
+const channelConfig = computed(() => window.chatwootWebChannel);
+const conversationAttributes = computed(
+  () => store.getters['conversationAttributes/getConversationParams']
+);
+const canUserEndConversation = computed(
+  () => store.getters['appConfig/getCanUserEndConversation']
+);
+const hideMessageBubble = computed(
+  () => store.getters['appConfig/getHideMessageBubble']
+);
+const isMobile = computed(() => store.getters['appConfig/getIsMobile']);
+const isWidgetFullscreen = computed(
+  () => store.getters['appConfig/getIsWidgetFullscreen']
+);
+
+const conversationStatus = computed(() => conversationAttributes.value.status);
+const canLeaveConversation = computed(() =>
+  [
+    CONVERSATION_STATUS.OPEN,
+    CONVERSATION_STATUS.SNOOZED,
+    CONVERSATION_STATUS.PENDING,
+  ].includes(conversationStatus.value)
+);
+const isIframe = computed(() => IFrameHelper.isIFrame());
+const isRNWebView = computed(() => !!RNHelper.isRNWebView());
+const hasEndConversationEnabled = computed(() =>
+  channelConfig.value.enabledFeatures.includes('end_conversation')
+);
+const hasWidgetOptions = computed(
+  () =>
+    props.showPopoutButton ||
+    conversationStatus.value === CONVERSATION_STATUS.OPEN
+);
+const showHeaderActions = computed(
+  () => isIframe.value || isRNWebView.value || hasWidgetOptions.value
+);
+const showCloseButton = computed(
+  () =>
+    isMobile.value ||
+    isRNWebView.value ||
+    hideMessageBubble.value ||
+    isWidgetFullscreen.value
+);
+const showPopoutAction = computed(
+  () => props.showPopoutButton && !isMobile.value && !isWidgetFullscreen.value
+);
+const showFullscreenButton = computed(
+  () => isIframe.value && !isRNWebView.value && !isMobile.value
+);
+const fullscreenButtonTitle = computed(() =>
+  isWidgetFullscreen.value ? t('COLLAPSE_CHAT') : t('EXPAND_CHAT')
+);
+
+const closeWindow = () => {
+  if (IFrameHelper.isIFrame()) {
+    IFrameHelper.sendMessage({ event: 'closeWindow' });
+  } else if (RNHelper.isRNWebView()) {
+    RNHelper.sendMessage({ type: 'close-widget' });
+  }
+};
+
+const popoutWindow = () => {
+  closeWindow();
+  const {
+    location: { origin },
+    chatwootWebChannel: { websiteToken },
+    authToken,
+  } = window;
+
+  popoutChatWindow(origin, websiteToken, locale.value, authToken);
+};
+
+const resolveConversation = () => {
+  store.dispatch('conversation/resolveConversation');
+};
+
+const toggleFullscreen = () => {
+  IFrameHelper.sendMessage({
+    event: 'toggleFullscreen',
+    isFullscreen: !isWidgetFullscreen.value,
+  });
 };
 </script>
 
@@ -120,7 +118,7 @@ export default {
         showEndConversationButton
       "
       class="button transparent compact"
-      :title="$t('END_CONVERSATION')"
+      :title="t('END_CONVERSATION')"
       @click="resolveConversation"
     >
       <FluentIcon icon="sign-out" size="22" class="text-n-slate-12" />
@@ -128,7 +126,7 @@ export default {
     <button
       v-if="showPopoutAction"
       class="button transparent compact new-window--button"
-      :title="$t('OPEN_CHAT')"
+      :title="t('OPEN_CHAT')"
       @click="popoutWindow"
     >
       <FluentIcon icon="open" size="22" class="text-n-slate-12" />
@@ -149,8 +147,8 @@ export default {
     <button
       v-if="showCloseButton"
       class="button transparent compact close-button"
-      :title="$t('CLOSE_CHAT')"
-      :aria-label="$t('CLOSE_CHAT')"
+      :title="t('CLOSE_CHAT')"
+      :aria-label="t('CLOSE_CHAT')"
       @click="closeWindow"
     >
       <FluentIcon icon="dismiss" size="24" class="text-n-slate-12" />
