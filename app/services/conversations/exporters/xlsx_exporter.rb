@@ -68,8 +68,9 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
   end
 
   # Excel sheet names cannot exceed 31 chars and cannot contain : \ / ? * [ ]
+  # The backslash is placed first to avoid the [: ... :] POSIX class ambiguity.
   def safe_sheet_name(name)
-    sanitized = name.to_s.gsub(%r{[:\\/?*\[\]]}, '_')
+    sanitized = name.to_s.gsub(%r{[\\/:*?\[\]]}, '_')
     sanitized[0, 31]
   end
 
