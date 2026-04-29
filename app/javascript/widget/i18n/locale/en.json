@@ -126,6 +126,8 @@
     "FORMAT_DOCX": "Download as Word (.docx)",
     "FORMAT_ODT": "Download as OpenDocument (.odt)",
     "FORMAT_HTML": "Download as HTML",
+    "FORMAT_CSV": "Download as CSV",
+    "FORMAT_XLSX": "Download as Excel (.xlsx)",
     "SUCCESS": "Conversation exported successfully",
     "ERROR": "There was an error exporting the conversation"
   },

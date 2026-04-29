@@ -102,6 +102,18 @@ export default {
       >
         {{ $t('EXPORT_CONVERSATION.FORMAT_HTML') }}
       </button>
+      <button
+        class="w-full text-left px-4 py-2 text-sm text-n-slate-12 hover:bg-n-slate-2 dark:hover:bg-n-solid-3"
+        @click="handleExport('csv')"
+      >
+        {{ $t('EXPORT_CONVERSATION.FORMAT_CSV') }}
+      </button>
+      <button
+        class="w-full text-left px-4 py-2 text-sm text-n-slate-12 hover:bg-n-slate-2 dark:hover:bg-n-solid-3"
+        @click="handleExport('xlsx')"
+      >
+        {{ $t('EXPORT_CONVERSATION.FORMAT_XLSX') }}
+      </button>
     </div>
   </div>
 </template>
