@@ -3,7 +3,7 @@
 require 'cgi'
 
 # Builds a minimal valid .xlsx (Office Open XML SpreadsheetML) package without
-# external gems. The workbook contains only detected structured content blocks.
+# external gems. Global exports contain two sheets: Q&A and structured data.
 class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExporter
   CONTENT_TYPE_PACKAGE = 'application/vnd.openxmlformats-package.relationships+xml'
   CONTENT_TYPE_WORKBOOK = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
@@ -32,8 +32,21 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
     items = Conversations::Exporters::StructuredContentDetector
             .new(@messages, message_id: @message_id)
             .structured_items
+
+    return global_sheets(items) unless message_scoped_export?
     return [{ name: 'Sin datos', rows: empty_rows }] if items.empty?
 
+    message_scoped_sheets(items)
+  end
+
+  def global_sheets(items)
+    [
+      { name: 'Preguntas y respuestas', rows: question_answer_sheet_rows(items) },
+      { name: 'Datos estructurados', rows: structured_data_sheet_rows(items) }
+    ]
+  end
+
+  def message_scoped_sheets(items)
     items.map.with_index do |item, idx|
       {
         name: safe_sheet_name("#{item_label(item)} #{idx + 1}"),
@@ -51,11 +64,35 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
     ]
   end
 
+  def question_answer_sheet_rows(items)
+    rows = [[document_title], [generated_at], [], %w[Preguntas Respuestas]]
+    question_answer_rows = unique_messages(items).map do |item|
+      [question_text(item), message_text(item[:message])]
+    end
+
+    return rows + [['No se encontraron mensajes con tablas o datos estructurados.', '']] if question_answer_rows.empty?
+
+    rows + question_answer_rows
+  end
+
+  def structured_data_sheet_rows(items)
+    rows = [[document_title], [generated_at], []]
+    return rows + [['No se encontraron mensajes con tablas o datos estructurados.']] if items.empty?
+
+    items.each_with_index do |item, idx|
+      rows.concat(structured_block_rows(item, idx))
+      rows << []
+    end
+
+    rows
+  end
+
   def item_rows(item, idx)
+    [[document_title], [generated_at], []] + structured_block_rows(item, idx)
+  end
+
+  def structured_block_rows(item, idx)
     [
-      [document_title],
-      [generated_at],
-      [],
       ["Bloque #{idx + 1}", item_label(item)],
       ['Pregunta', question_text(item)],
       ['Mensaje', message_text(item[:message])],
@@ -64,6 +101,12 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
       [],
       item[:headers]
     ] + item[:rows]
+  end
+
+  def unique_messages(items)
+    items.each_with_object({}) do |item, indexed|
+      indexed[item[:message].id] ||= item
+    end.values
   end
 
   def item_label(item)

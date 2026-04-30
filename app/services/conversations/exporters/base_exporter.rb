@@ -55,6 +55,10 @@ class Conversations::Exporters::BaseExporter
     "#{@title} - Conversación ##{@conversation.display_id}"
   end
 
+  def message_scoped_export?
+    @message_id.present?
+  end
+
   # Prawn's built-in fonts only support WinAnsi (Windows-1252). Any character
   # outside that set (emoji, CJK, cyrillic, etc.) raises IncompatibleStringEncoding.
   # Re-encode replacing unsupported characters with '?' so the export never crashes.
