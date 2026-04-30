@@ -129,7 +129,9 @@
     "FORMAT_CSV": "Download as CSV",
     "FORMAT_XLSX": "Download as Excel (.xlsx)",
     "SUCCESS": "Conversation exported successfully",
-    "ERROR": "There was an error exporting the conversation"
+    "ERROR": "There was an error exporting the conversation",
+    "DOWNLOAD_TABLE": "Download table",
+    "TABLE_TITLE": "Table"
   },
   "INTEGRATIONS": {
     "DYTE": {
