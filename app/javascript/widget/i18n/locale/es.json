@@ -122,12 +122,13 @@
     "FORMAT_DOCX": "Descargar como Word (.docx)",
     "FORMAT_ODT": "Descargar como OpenDocument (.odt)",
     "FORMAT_HTML": "Descargar como HTML",
-    "FORMAT_CSV": "Descargar como CSV",
-    "FORMAT_XLSX": "Descargar como Excel (.xlsx)",
+    "FORMAT_CSV": "Descargar tablas/datos como CSV",
+    "FORMAT_XLSX": "Descargar tablas/datos como Excel (.xlsx)",
+    "FORMAT_CSV_SHORT": "CSV",
+    "FORMAT_XLSX_SHORT": "Excel (.xlsx)",
+    "DOWNLOAD_STRUCTURED_DATA": "Descargar datos",
     "SUCCESS": "Conversación exportada correctamente",
-    "ERROR": "Hubo un error al exportar la conversación",
-    "DOWNLOAD_TABLE": "Descargar tabla",
-    "TABLE_TITLE": "Tabla"
+    "ERROR": "Hubo un error al exportar la conversación"
   },
   "INTEGRATIONS": {
     "DYTE": {

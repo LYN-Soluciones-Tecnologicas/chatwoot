@@ -73,10 +73,13 @@ const parseFilenameFromContentDisposition = disposition => {
   return match ? match[1] : null;
 };
 
-const exportConversation = async format => {
+const exportConversation = async (format, messageId = null) => {
   const separator = window.location.search ? '&' : '?';
+  const messageParam = messageId
+    ? `&message_id=${encodeURIComponent(messageId)}`
+    : '';
   const response = await API.get(
-    `/api/v1/widget/conversations/export${window.location.search}${separator}format_type=${format}`,
+    `/api/v1/widget/conversations/export${window.location.search}${separator}format_type=${format}${messageParam}`,
     { responseType: 'blob' }
   );
 

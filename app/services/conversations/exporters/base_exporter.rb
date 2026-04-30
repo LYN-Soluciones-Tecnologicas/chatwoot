@@ -7,6 +7,7 @@ class Conversations::Exporters::BaseExporter
     @conversation = data[:conversation]
     @title = data[:title]
     @timezone = data[:timezone]
+    @message_id = data[:message_id]
     @messages = data[:messages]
   end
 

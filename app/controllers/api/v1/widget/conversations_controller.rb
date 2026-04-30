@@ -48,7 +48,7 @@ class Api::V1::Widget::ConversationsController < Api::V1::Widget::BaseController
     return head :forbidden unless @web_widget.export_conversation?
     return head :unprocessable_entity unless Conversations::ExportService::SUPPORTED_FORMATS.include?(params[:format_type].to_s)
 
-    service = Conversations::ExportService.new(conversation, params[:format_type])
+    service = Conversations::ExportService.new(conversation, params[:format_type], message_id: params[:message_id])
     send_data service.perform,
               filename: service.filename,
               type: service.content_type,

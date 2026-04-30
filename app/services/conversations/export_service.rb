@@ -12,9 +12,11 @@ class Conversations::ExportService
     'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   }.freeze
 
-  def initialize(conversation, format)
+  def initialize(conversation, format, message_id: nil)
     @conversation = conversation
     @format = format.to_s.downcase
+    @message_id = message_id.to_s.presence
+    @message_id = nil unless @message_id&.match?(/\A\d+\z/)
     raise ArgumentError, "Unsupported format: #{format}" unless SUPPORTED_FORMATS.include?(@format)
   end
 
@@ -23,7 +25,11 @@ class Conversations::ExportService
   end
 
   def filename
-    "conversation-#{@conversation.display_id}-#{Time.zone.now.strftime('%Y%m%d')}.#{@format}"
+    suffix = structured_data_export? ? 'structured-data-' : ''
+    message_suffix = structured_data_export? && @message_id.present? ? "message-#{@message_id}-" : ''
+    date = Time.zone.now.strftime('%Y%m%d')
+
+    "conversation-#{suffix}#{message_suffix}#{@conversation.display_id}-#{date}.#{@format}"
   end
 
   def content_type
@@ -43,11 +49,16 @@ class Conversations::ExportService
     end
   end
 
+  def structured_data_export?
+    %w[csv xlsx].include?(@format)
+  end
+
   def transcript_data
     {
       conversation: @conversation,
       title: @conversation.inbox.name,
       timezone: @conversation.inbox.timezone,
+      message_id: @message_id,
       messages: messages_for_transcript
     }
   end

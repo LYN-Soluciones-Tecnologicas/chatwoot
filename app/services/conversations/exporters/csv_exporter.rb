@@ -1,47 +1,49 @@
 # frozen_string_literal: true
 
-# Emits the conversation transcript as CSV. When the messages contain
-# Markdown tables (detected by StructuredContentDetector) each table is
-# rendered as its own block prefixed with metadata; otherwise the file
-# falls back to a chronological dump (sender, timestamp, content,
-# attachments). CSVSafe is used to neutralise formula-injection vectors.
+# Emits only structured conversation content as CSV. Each block includes the
+# incoming question that preceded the structured answer.
 class Conversations::Exporters::CsvExporter < Conversations::Exporters::BaseExporter
   def render
-    detector = Conversations::Exporters::StructuredContentDetector.new(@messages)
+    items = Conversations::Exporters::StructuredContentDetector
+            .new(@messages, message_id: @message_id)
+            .structured_items
 
     CSVSafe.generate(force_quotes: true) do |csv|
       csv << [document_title]
       csv << [generated_at]
       csv << []
-
-      if detector.structured?
-        write_tables(csv, detector.tables)
-      else
-        write_messages(csv)
-      end
+      write_items(csv, items)
     end
   end
 
   private
 
-  def write_tables(csv, tables)
-    tables.each_with_index do |table, idx|
-      csv << ["Tabla #{idx + 1}", "Origen: #{table[:sender]}"]
-      csv << table[:headers]
-      table[:rows].each { |row| csv << row }
+  def write_items(csv, items)
+    return write_empty_state(csv) if items.empty?
+
+    items.each_with_index do |item, idx|
+      csv << ["Bloque #{idx + 1}", item_label(item)]
+      csv << ['Pregunta', question_text(item)]
+      csv << ['Mensaje', message_text(item[:message])]
+      csv << ['Origen', sender_name(item[:message])]
+      csv << ['Fecha', formatted_timestamp(item[:message])]
+      csv << []
+      csv << item[:headers]
+      item[:rows].each { |row| csv << row }
       csv << []
     end
   end
 
-  def write_messages(csv)
-    csv << %w[Remitente Fecha Mensaje Adjuntos]
-    @messages.each do |message|
-      csv << [
-        sender_name(message),
-        formatted_timestamp(message),
-        message_text(message),
-        attachment_names(message).join(', ')
-      ]
-    end
+  def write_empty_state(csv)
+    csv << ['No se encontraron mensajes con tablas o datos estructurados.']
+  end
+
+  def item_label(item)
+    item[:type] == :table ? 'Tabla' : 'Datos estructurados'
+  end
+
+  def question_text(item)
+    question = item[:question]
+    question.present? ? message_text(question) : ''
   end
 end

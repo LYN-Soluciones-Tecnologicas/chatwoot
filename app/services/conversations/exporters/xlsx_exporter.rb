@@ -2,14 +2,9 @@
 
 require 'cgi'
 
-# Builds a minimal valid .xlsx (Office Open XML SpreadsheetML) package
-# without external gems, mirroring the approach used in OdtExporter.
-# A single "Transcripción" sheet always contains the chronological dump;
-# every Markdown table detected in the messages is added as its own sheet,
-# so the CSV/XLSX requirement still produces useful output even when no
-# tabular content is present.
+# Builds a minimal valid .xlsx (Office Open XML SpreadsheetML) package without
+# external gems. The workbook contains only detected structured content blocks.
 class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExporter
-  TRANSCRIPT_SHEET = 'Transcripción'
   CONTENT_TYPE_PACKAGE = 'application/vnd.openxmlformats-package.relationships+xml'
   CONTENT_TYPE_WORKBOOK = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
   CONTENT_TYPE_WORKSHEET = 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
@@ -34,44 +29,57 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
   private
 
   def build_sheets
-    sheets = [{ name: TRANSCRIPT_SHEET, rows: transcript_rows }]
+    items = Conversations::Exporters::StructuredContentDetector
+            .new(@messages, message_id: @message_id)
+            .structured_items
+    return [{ name: 'Sin datos', rows: empty_rows }] if items.empty?
 
-    Conversations::Exporters::StructuredContentDetector.new(@messages).tables.each_with_index do |table, idx|
-      sheets << {
-        name: safe_sheet_name("Tabla #{idx + 1}"),
-        rows: table_rows(table)
+    items.map.with_index do |item, idx|
+      {
+        name: safe_sheet_name("#{item_label(item)} #{idx + 1}"),
+        rows: item_rows(item, idx)
       }
     end
-
-    sheets
   end
 
-  def transcript_rows
-    rows = [[document_title], [generated_at], [], %w[Remitente Fecha Mensaje Adjuntos]]
-    @messages.each do |message|
-      rows << [
-        sender_name(message),
-        formatted_timestamp(message),
-        message_text(message),
-        attachment_names(message).join(', ')
-      ]
-    end
-    rows
-  end
-
-  def table_rows(table)
+  def empty_rows
     [
-      ["Tabla extraída del mensaje", "Origen: #{table[:sender]}"],
+      [document_title],
+      [generated_at],
       [],
-      table[:headers]
-    ] + table[:rows]
+      ['No se encontraron mensajes con tablas o datos estructurados.']
+    ]
+  end
+
+  def item_rows(item, idx)
+    [
+      [document_title],
+      [generated_at],
+      [],
+      ["Bloque #{idx + 1}", item_label(item)],
+      ['Pregunta', question_text(item)],
+      ['Mensaje', message_text(item[:message])],
+      ['Origen', sender_name(item[:message])],
+      ['Fecha', formatted_timestamp(item[:message])],
+      [],
+      item[:headers]
+    ] + item[:rows]
+  end
+
+  def item_label(item)
+    item[:type] == :table ? 'Tabla' : 'Datos'
+  end
+
+  def question_text(item)
+    question = item[:question]
+    question.present? ? message_text(question) : ''
   end
 
   # Excel sheet names cannot exceed 31 chars and cannot contain : \ / ? * [ ]
   # The backslash is placed first to avoid the [: ... :] POSIX class ambiguity.
   def safe_sheet_name(name)
     sanitized = name.to_s.gsub(%r{[\\/:*?\[\]]}, '_')
-    sanitized[0, 31]
+    sanitized.presence&.first(31) || 'Hoja'
   end
 
   def column_letter(idx)

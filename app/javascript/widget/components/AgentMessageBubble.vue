@@ -1,5 +1,9 @@
 <script>
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
+import FluentIcon from 'shared/components/FluentIcon/Index.vue';
+import { exportConversation } from 'widget/api/conversation';
+import { BUS_EVENTS } from 'shared/constants/busEvents';
+import { emitter } from 'shared/helpers/mitt';
 import ChatCard from 'shared/components/ChatCard.vue';
 import ChatForm from 'shared/components/ChatForm.vue';
 import ChatOptions from 'shared/components/ChatOptions.vue';
@@ -11,6 +15,7 @@ import IntegrationCard from './template/IntegrationCard.vue';
 export default {
   name: 'AgentMessageBubble',
   components: {
+    FluentIcon,
     ChatArticle,
     ChatCard,
     ChatForm,
@@ -39,6 +44,12 @@ export default {
       highlightContent,
     };
   },
+  data() {
+    return {
+      isStructuredExportMenuOpen: false,
+      isStructuredExporting: false,
+    };
+  },
   computed: {
     isTemplate() {
       return this.messageType === 3;
@@ -64,12 +75,18 @@ export default {
     isIntegrations() {
       return this.contentType === 'integrations';
     },
+    hasStructuredContent() {
+      const content = this.message?.trim();
+      if (!content) return false;
+
+      return this.hasMarkdownTable(content) || this.hasJsonBlock(content);
+    },
   },
-  mounted() {
-    this.enhanceTables();
-  },
-  updated() {
-    this.enhanceTables();
+  beforeUnmount() {
+    document.removeEventListener(
+      'click',
+      this.handleStructuredExportOutsideClick
+    );
   },
   methods: {
     onResponse(messageResponse) {
@@ -91,49 +108,86 @@ export default {
         messageId: this.messageId,
       });
     },
-    enhanceTables() {
-      const root = this.$refs.messageContent;
-      if (!root) return;
-      const tables = root.querySelectorAll('table:not([data-cw-enhanced])');
-      tables.forEach((table, idx) => {
-        table.setAttribute('data-cw-enhanced', '1');
-        const actions = document.createElement('div');
-        actions.className = 'cw-table-actions';
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'cw-table-download-btn';
-        button.textContent = this.$t('EXPORT_CONVERSATION.DOWNLOAD_TABLE');
-        button.addEventListener('click', () =>
-          this.downloadTableAsHtml(table, idx + 1)
+    toggleStructuredExportMenu() {
+      if (this.isStructuredExporting) return;
+
+      this.setStructuredExportMenuOpen(!this.isStructuredExportMenuOpen);
+    },
+    setStructuredExportMenuOpen(isOpen) {
+      this.isStructuredExportMenuOpen = isOpen;
+      if (isOpen) {
+        document.addEventListener(
+          'click',
+          this.handleStructuredExportOutsideClick
         );
-        actions.appendChild(button);
-        table.parentNode.insertBefore(actions, table.nextSibling);
+      } else {
+        document.removeEventListener(
+          'click',
+          this.handleStructuredExportOutsideClick
+        );
+      }
+    },
+    handleStructuredExportOutsideClick(event) {
+      const menu = this.$refs.structuredExportMenu;
+      if (menu && !menu.contains(event.target)) {
+        this.setStructuredExportMenuOpen(false);
+      }
+    },
+    async handleStructuredExport(format) {
+      if (this.isStructuredExporting) return;
+
+      this.isStructuredExporting = true;
+      this.setStructuredExportMenuOpen(false);
+      try {
+        await exportConversation(format, this.messageId);
+        emitter.emit(BUS_EVENTS.SHOW_ALERT, {
+          message: this.$t('EXPORT_CONVERSATION.SUCCESS'),
+          type: 'success',
+        });
+      } catch {
+        emitter.emit(BUS_EVENTS.SHOW_ALERT, {
+          message: this.$t('EXPORT_CONVERSATION.ERROR'),
+        });
+      } finally {
+        this.isStructuredExporting = false;
+      }
+    },
+    hasMarkdownTable(content) {
+      const lines = content.split(/\r?\n/).map(line => line.trim());
+
+      return lines.some((line, index) => {
+        const nextLine = lines[index + 1];
+        return (
+          line.includes('|') && nextLine && this.isMarkdownSeparator(nextLine)
+        );
       });
     },
-    downloadTableAsHtml(tableElement, tableNumber) {
-      const title = `${this.$t('EXPORT_CONVERSATION.TABLE_TITLE')} ${tableNumber}`;
-      const html = `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>${title}</title>
-<style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;color:#111}
-h1{font-size:18px;margin:0 0 16px}
-table{border-collapse:collapse;width:100%}
-th,td{border:1px solid #d1d5db;padding:8px 12px;text-align:left;vertical-align:top}
-th{background:#f3f4f6;font-weight:600}
-tr:nth-child(even) td{background:#fafafa}
-</style></head><body>
-<h1>${title}</h1>
-${tableElement.outerHTML}
-</body></html>`;
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `tabla-${tableNumber}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    isMarkdownSeparator(line) {
+      const cells = line
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map(cell => cell.trim());
+
+      return cells.length > 1 && cells.every(cell => /^:?-{3,}:?$/.test(cell));
+    },
+    hasJsonBlock(content) {
+      const fencedJson = content.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i);
+      if (fencedJson && this.isStructuredJson(fencedJson[1])) return true;
+
+      return /^\s*[[{]/.test(content) && this.isStructuredJson(content);
+    },
+    isStructuredJson(payload) {
+      try {
+        const value = JSON.parse(payload);
+        if (Array.isArray(value)) return value.length > 0;
+
+        return (
+          value && typeof value === 'object' && Object.keys(value).length > 0
+        );
+      } catch {
+        return false;
+      }
     },
   },
 };
@@ -148,10 +202,44 @@ ${tableElement.outerHTML}
       class="chat-bubble agent bg-n-background dark:bg-n-solid-3 text-n-slate-12"
     >
       <div
-        ref="messageContent"
         v-dompurify-html="formatMessage(message, false)"
         class="message-content text-n-slate-12"
       />
+      <div
+        v-if="hasStructuredContent"
+        ref="structuredExportMenu"
+        class="relative mt-2 flex justify-end"
+      >
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border border-n-weak px-2 py-1 text-xs text-n-slate-11 hover:bg-n-slate-2 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-n-solid-3"
+          :disabled="isStructuredExporting"
+          :title="$t('EXPORT_CONVERSATION.DOWNLOAD_STRUCTURED_DATA')"
+          @click.stop="toggleStructuredExportMenu"
+        >
+          <FluentIcon icon="arrow-download" size="14" />
+          <span>{{ $t('EXPORT_CONVERSATION.DOWNLOAD_STRUCTURED_DATA') }}</span>
+        </button>
+        <div
+          v-if="isStructuredExportMenuOpen"
+          class="absolute right-0 top-8 z-50 min-w-[120px] rounded-md border border-n-weak bg-white py-1 shadow-lg dark:bg-n-solid-2"
+        >
+          <button
+            type="button"
+            class="w-full px-3 py-2 text-left text-sm text-n-slate-12 hover:bg-n-slate-2 dark:hover:bg-n-solid-3"
+            @click.stop="handleStructuredExport('csv')"
+          >
+            {{ $t('EXPORT_CONVERSATION.FORMAT_CSV_SHORT') }}
+          </button>
+          <button
+            type="button"
+            class="w-full px-3 py-2 text-left text-sm text-n-slate-12 hover:bg-n-slate-2 dark:hover:bg-n-solid-3"
+            @click.stop="handleStructuredExport('xlsx')"
+          >
+            {{ $t('EXPORT_CONVERSATION.FORMAT_XLSX_SHORT') }}
+          </button>
+        </div>
+      </div>
       <EmailInput
         v-if="isTemplateEmail"
         :message-id="messageId"
@@ -201,33 +289,3 @@ ${tableElement.outerHTML}
     />
   </div>
 </template>
-
-<style>
-.cw-table-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 6px;
-  margin-bottom: 4px;
-}
-.cw-table-download-btn {
-  font-size: 12px;
-  line-height: 1;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(0, 0, 0, 0.04);
-  color: inherit;
-  cursor: pointer;
-  transition: background 120ms ease;
-}
-.cw-table-download-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
-}
-.dark .cw-table-download-btn {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-}
-.dark .cw-table-download-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-</style>
