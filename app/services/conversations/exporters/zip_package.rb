@@ -47,7 +47,7 @@ class Conversations::Exporters::ZipPackage
   def end_of_central_directory(central_directory, cd_offset)
     [
       END_OF_CENTRAL_DIRECTORY, 0, 0, @entries.size, @entries.size, central_directory.bytesize, cd_offset, 0
-    ].pack('VvvvvvVVv')
+    ].pack('VvvvvVVv')
   end
 
   def checksum(content)

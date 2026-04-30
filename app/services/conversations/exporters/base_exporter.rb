@@ -59,6 +59,30 @@ class Conversations::Exporters::BaseExporter
     @message_id.present?
   end
 
+  def question_answer_rows
+    rows = []
+    current_question = nil
+    current_question_parts = []
+    collecting_question = false
+
+    @messages.each do |message|
+      text = message_text(message).strip
+      next if text.blank?
+
+      if message.incoming?
+        current_question_parts = [] unless collecting_question
+        current_question_parts << text
+        current_question = current_question_parts.join("\n\n")
+        collecting_question = true
+      elsif message.outgoing? && current_question.present?
+        rows << [current_question, text]
+        collecting_question = false
+      end
+    end
+
+    rows
+  end
+
   # Prawn's built-in fonts only support WinAnsi (Windows-1252). Any character
   # outside that set (emoji, CJK, cyrillic, etc.) raises IncompatibleStringEncoding.
   # Re-encode replacing unsupported characters with '?' so the export never crashes.

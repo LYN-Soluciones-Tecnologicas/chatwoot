@@ -19,17 +19,17 @@ class Conversations::Exporters::CsvExporter < Conversations::Exporters::BaseExpo
   private
 
   def write_global_items(csv, items)
-    write_question_answers(csv, items)
+    write_question_answers(csv)
     csv << []
     write_structured_items(csv, items)
   end
 
-  def write_question_answers(csv, items)
+  def write_question_answers(csv)
     csv << ['Preguntas y respuestas']
     csv << %w[Preguntas Respuestas]
 
-    rows = question_answer_rows(items)
-    return csv << ['No se encontraron mensajes con tablas o datos estructurados.', ''] if rows.empty?
+    rows = question_answer_rows
+    return csv << ['No se encontraron preguntas y respuestas.', ''] if rows.empty?
 
     rows.each { |row| csv << row }
   end
@@ -53,18 +53,6 @@ class Conversations::Exporters::CsvExporter < Conversations::Exporters::BaseExpo
 
   def write_empty_state(csv)
     csv << ['No se encontraron mensajes con tablas o datos estructurados.']
-  end
-
-  def question_answer_rows(items)
-    unique_messages(items).map do |item|
-      [question_text(item), message_text(item[:message])]
-    end
-  end
-
-  def unique_messages(items)
-    items.each_with_object({}) do |item, indexed|
-      indexed[item[:message].id] ||= item
-    end.values
   end
 
   def item_label(item)

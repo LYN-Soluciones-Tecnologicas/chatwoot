@@ -41,7 +41,7 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
 
   def global_sheets(items)
     [
-      { name: 'Preguntas y respuestas', rows: question_answer_sheet_rows(items) },
+      { name: 'Preguntas y respuestas', rows: question_answer_sheet_rows },
       { name: 'Datos estructurados', rows: structured_data_sheet_rows(items) }
     ]
   end
@@ -64,15 +64,13 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
     ]
   end
 
-  def question_answer_sheet_rows(items)
+  def question_answer_sheet_rows
     rows = [[document_title], [generated_at], [], %w[Preguntas Respuestas]]
-    question_answer_rows = unique_messages(items).map do |item|
-      [question_text(item), message_text(item[:message])]
-    end
+    qa_rows = question_answer_rows
 
-    return rows + [['No se encontraron mensajes con tablas o datos estructurados.', '']] if question_answer_rows.empty?
+    return rows + [['No se encontraron preguntas y respuestas.', '']] if qa_rows.empty?
 
-    rows + question_answer_rows
+    rows + qa_rows
   end
 
   def structured_data_sheet_rows(items)
@@ -101,12 +99,6 @@ class Conversations::Exporters::XlsxExporter < Conversations::Exporters::BaseExp
       [],
       item[:headers]
     ] + item[:rows]
-  end
-
-  def unique_messages(items)
-    items.each_with_object({}) do |item, indexed|
-      indexed[item[:message].id] ||= item
-    end.values
   end
 
   def item_label(item)
