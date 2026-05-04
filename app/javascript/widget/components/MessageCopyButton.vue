@@ -52,19 +52,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex">
+  <div class="flex items-center">
     <button
       v-if="hasText"
       type="button"
-      class="inline-flex h-6 w-6 items-center justify-center rounded-md text-n-slate-11 transition-colors hover:bg-n-slate-2 hover:text-n-slate-12 dark:hover:bg-n-solid-3"
+      class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-n-slate-11 transition-colors hover:bg-n-slate-2 hover:text-n-slate-12 focus-visible:outline focus-visible:outline-1 focus-visible:outline-n-slate-7 dark:hover:bg-n-solid-3"
       :title="buttonLabel"
       :aria-label="buttonLabel"
       @click.stop="handleCopy"
     >
-      <FluentIcon
-        :icon="copied ? 'checkmark-outline' : 'copy-outline'"
-        size="14"
-      />
+      <FluentIcon :icon="copied ? 'checkmark' : 'copy'" size="16" />
     </button>
   </div>
 </template>
