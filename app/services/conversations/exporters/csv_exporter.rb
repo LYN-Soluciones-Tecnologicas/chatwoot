@@ -3,7 +3,7 @@
 # Emits structured conversation content as CSV. Global exports include two
 # sections: question/answer pairs first, then extracted structured blocks.
 class Conversations::Exporters::CsvExporter < Conversations::Exporters::BaseExporter
-  UTF8_BOM = "\xEF\xBB\xBF".force_encoding(Encoding::UTF_8).freeze
+  UTF8_BOM = [0xEF, 0xBB, 0xBF].pack('C*').force_encoding(Encoding::UTF_8).freeze
 
   def render
     items = Conversations::Exporters::StructuredContentDetector
