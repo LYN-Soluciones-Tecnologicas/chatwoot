@@ -11,6 +11,7 @@ import ChatArticle from './template/Article.vue';
 import EmailInput from './template/EmailInput.vue';
 import CustomerSatisfaction from 'shared/components/CustomerSatisfaction.vue';
 import IntegrationCard from './template/IntegrationCard.vue';
+import MessageCopyButton from './MessageCopyButton.vue';
 
 export default {
   name: 'AgentMessageBubble',
@@ -23,6 +24,7 @@ export default {
     EmailInput,
     CustomerSatisfaction,
     IntegrationCard,
+    MessageCopyButton,
   },
   props: {
     message: { type: String, default: null },
@@ -74,6 +76,15 @@ export default {
     },
     isIntegrations() {
       return this.contentType === 'integrations';
+    },
+    isTextMessage() {
+      return (
+        !this.isCards &&
+        !this.isOptions &&
+        !this.isForm &&
+        !this.isArticle &&
+        !this.isCSAT
+      );
     },
     hasStructuredContent() {
       const content = this.message?.trim();
@@ -196,9 +207,7 @@ export default {
 <template>
   <div class="chat-bubble-wrap">
     <div
-      v-if="
-        !isCards && !isOptions && !isForm && !isArticle && !isCards && !isCSAT
-      "
+      v-if="isTextMessage"
       class="chat-bubble agent bg-n-background dark:bg-n-solid-3 text-n-slate-12"
     >
       <div
@@ -252,6 +261,12 @@ export default {
         :meeting-data="messageContentAttributes.data"
       />
     </div>
+    <MessageCopyButton
+      v-if="isTextMessage"
+      class="mt-1"
+      :text="message"
+      :label="$t('COMPONENTS.MESSAGE_BUBBLE.COPY_RESPONSE')"
+    />
     <div v-if="isOptions">
       <ChatOptions
         :title="message"

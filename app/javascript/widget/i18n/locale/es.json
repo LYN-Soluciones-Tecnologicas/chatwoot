@@ -9,7 +9,11 @@
     },
     "MESSAGE_BUBBLE": {
       "RETRY": "Enviar mensaje de nuevo",
-      "ERROR_MESSAGE": "¡No se pudo enviar! intente nuevamente"
+      "ERROR_MESSAGE": "¡No se pudo enviar! intente nuevamente",
+      "COPY_MESSAGE": "Copiar mensaje",
+      "COPY_RESPONSE": "Copiar respuesta",
+      "COPIED": "Copiado",
+      "COPY_ERROR": "No se pudo copiar el mensaje"
     }
   },
   "THUMBNAIL": {

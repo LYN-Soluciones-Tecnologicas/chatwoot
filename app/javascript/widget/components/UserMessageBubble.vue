@@ -1,9 +1,11 @@
 <script>
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
 import { getContrastingTextColor } from '@chatwoot/utils';
+import MessageCopyButton from './MessageCopyButton.vue';
 
 export default {
   name: 'UserMessageBubble',
+  components: { MessageCopyButton },
   props: {
     message: {
       type: String,
@@ -29,11 +31,17 @@ export default {
 </script>
 
 <template>
-  <div
-    v-dompurify-html="formatMessage(message, false)"
-    class="chat-bubble user"
-    :style="{ background: widgetColor, color: textColor }"
-  />
+  <div class="flex flex-col items-end gap-1">
+    <div
+      v-dompurify-html="formatMessage(message, false)"
+      class="chat-bubble user"
+      :style="{ background: widgetColor, color: textColor }"
+    />
+    <MessageCopyButton
+      :text="message"
+      :label="$t('COMPONENTS.MESSAGE_BUBBLE.COPY_MESSAGE')"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
