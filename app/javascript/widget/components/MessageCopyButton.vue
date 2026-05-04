@@ -56,15 +56,15 @@ onBeforeUnmount(() => {
     <button
       v-if="hasText"
       type="button"
-      class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-n-slate-11 transition-colors hover:bg-n-slate-2 hover:text-n-slate-12 dark:hover:bg-n-solid-3"
+      class="inline-flex h-6 w-6 items-center justify-center rounded-md text-n-slate-11 transition-colors hover:bg-n-slate-2 hover:text-n-slate-12 dark:hover:bg-n-solid-3"
       :title="buttonLabel"
+      :aria-label="buttonLabel"
       @click.stop="handleCopy"
     >
       <FluentIcon
         :icon="copied ? 'checkmark-outline' : 'copy-outline'"
         size="14"
       />
-      <span>{{ buttonLabel }}</span>
     </button>
   </div>
 </template>
