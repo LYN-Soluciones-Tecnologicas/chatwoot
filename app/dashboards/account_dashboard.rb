@@ -34,7 +34,9 @@ class AccountDashboard < Administrate::BaseDashboard
     locale: Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
     status: Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
     account_users: Field::HasMany,
-    custom_attributes: Field::String
+    custom_attributes: Field::String,
+    delete_inactive_conversations_enabled: Field::Boolean,
+    delete_inactive_conversations_after: Field::Number.with_options(html_options: { min: 10, max: 1_439_856, step: 1 })
   }.merge(enterprise_attribute_types).freeze
 
   # COLLECTION_ATTRIBUTES
@@ -70,6 +72,8 @@ class AccountDashboard < Administrate::BaseDashboard
     status
     conversations
     account_users
+    delete_inactive_conversations_enabled
+    delete_inactive_conversations_after
   ] + enterprise_show_page_attributes).freeze
 
   # FORM_ATTRIBUTES
@@ -87,6 +91,8 @@ class AccountDashboard < Administrate::BaseDashboard
     name
     locale
     status
+    delete_inactive_conversations_enabled
+    delete_inactive_conversations_after
   ] + enterprise_form_attributes).freeze
 
   # COLLECTION_FILTERS

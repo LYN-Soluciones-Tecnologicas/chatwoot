@@ -17,6 +17,9 @@ class TriggerScheduledItemsJob < ApplicationJob
     # Job to auto-resolve conversations
     Account::ConversationsResolutionSchedulerJob.perform_later
 
+    # Job to delete inactive conversations for accounts that have it enabled
+    Account::InactiveConversationsDeletionSchedulerJob.perform_later
+
     # Job to sync whatsapp templates
     Channels::Whatsapp::TemplatesSyncSchedulerJob.perform_later
   end

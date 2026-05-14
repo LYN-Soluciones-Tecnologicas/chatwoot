@@ -40,6 +40,8 @@ class Account < ApplicationRecord
         'auto_resolve_ignore_waiting': { 'type': %w[boolean null] },
         'audio_transcriptions': { 'type': %w[boolean null] },
         'auto_resolve_label': { 'type': %w[string null] },
+        'delete_inactive_conversations_enabled': { 'type': %w[boolean null] },
+        'delete_inactive_conversations_after': { 'type': %w[integer null], 'minimum': 10, 'maximum': 1_439_856 },
         'keep_pending_on_bot_failure': { 'type': %w[boolean null] },
         'captain_auto_resolve_mode': { 'type': %w[string null], 'enum': ['evaluated', 'legacy', 'disabled', nil] },
         'conversation_required_attributes': {
@@ -90,6 +92,7 @@ class Account < ApplicationRecord
   store_accessor :settings, :auto_resolve_after, :auto_resolve_message, :auto_resolve_ignore_waiting
 
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label
+  store_accessor :settings, :delete_inactive_conversations_enabled, :delete_inactive_conversations_after
   store_accessor :settings, :captain_models, :captain_features
   store_accessor :settings, :reporting_timezone
   store_accessor :settings, :keep_pending_on_bot_failure
@@ -145,6 +148,15 @@ class Account < ApplicationRecord
   enum :status, { active: 0, suspended: 1 }
 
   scope :with_auto_resolve, -> { where("(settings ->> 'auto_resolve_after')::int IS NOT NULL") }
+  scope :with_inactive_conversations_deletion, lambda {
+    where("(settings ->> 'delete_inactive_conversations_enabled')::boolean = true")
+      .where("(settings ->> 'delete_inactive_conversations_after')::int > 0")
+  }
+
+  def inactive_conversations_deletion_enabled?
+    ActiveModel::Type::Boolean.new.cast(delete_inactive_conversations_enabled) &&
+      delete_inactive_conversations_after.to_i.positive?
+  end
 
   before_validation :validate_limit_keys
   after_create_commit :notify_creation

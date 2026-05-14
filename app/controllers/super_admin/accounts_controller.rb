@@ -37,7 +37,24 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
     permitted_params = super
     permitted_params[:limits] = permitted_params[:limits].to_h.compact
     permitted_params[:selected_feature_flags] = params[:enabled_features].keys.map(&:to_sym) if params[:enabled_features].present?
+    normalize_inactive_conversations_deletion_params(permitted_params)
     permitted_params
+  end
+
+  # The two settings live in the `settings` JSONB via store_accessor and must be
+  # persisted as boolean/integer to satisfy the JSON Schema validator. Form
+  # inputs arrive as strings; we cast them here. Blank threshold is treated as
+  # nil (feature effectively disabled).
+  def normalize_inactive_conversations_deletion_params(permitted_params)
+    if permitted_params.key?(:delete_inactive_conversations_enabled)
+      permitted_params[:delete_inactive_conversations_enabled] =
+        ActiveModel::Type::Boolean.new.cast(permitted_params[:delete_inactive_conversations_enabled])
+    end
+
+    return unless permitted_params.key?(:delete_inactive_conversations_after)
+
+    value = permitted_params[:delete_inactive_conversations_after]
+    permitted_params[:delete_inactive_conversations_after] = value.present? ? value.to_i : nil
   end
 
   # See https://administrate-prototype.herokuapp.com/customizing_controller_actions

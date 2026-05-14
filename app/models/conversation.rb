@@ -89,6 +89,12 @@ class Conversation < ApplicationRecord
 
     open.where('last_activity_at < ?', Time.now.utc - auto_resolve_after.minutes)
   }
+  scope :deletable_by_inactivity, lambda { |inactive_after_minutes|
+    return none if inactive_after_minutes.to_i <= 0
+
+    where('last_activity_at < ?', Time.now.utc - inactive_after_minutes.to_i.minutes)
+      .where.not(contact_id: nil)
+  }
 
   scope :last_user_message_at, lambda {
     joins(
