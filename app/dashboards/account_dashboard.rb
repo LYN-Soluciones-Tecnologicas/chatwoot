@@ -36,7 +36,7 @@ class AccountDashboard < Administrate::BaseDashboard
     account_users: Field::HasMany,
     custom_attributes: Field::String,
     delete_inactive_conversations_enabled: Field::Boolean,
-    delete_inactive_conversations_after: Field::Number.with_options(html_options: { min: 10, max: 1_439_856, step: 1 })
+    delete_inactive_conversations_after: Field::Number
   }.merge(enterprise_attribute_types).freeze
 
   # COLLECTION_ATTRIBUTES
