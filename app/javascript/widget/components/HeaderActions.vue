@@ -1,11 +1,12 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore } from 'vuex';
 import { IFrameHelper, RNHelper } from 'widget/helpers/utils';
 import { popoutChatWindow } from '../helpers/popoutHelper';
 import FluentIcon from 'shared/components/FluentIcon/Index.vue';
 import ExportConversationMenu from 'widget/components/ExportConversationMenu.vue';
+import EndConversationDialog from 'widget/components/EndConversationDialog.vue';
 import { CONVERSATION_STATUS } from 'shared/constants/messages';
 
 const props = defineProps({
@@ -94,11 +95,18 @@ const popoutWindow = () => {
   popoutChatWindow(origin, websiteToken, locale.value, authToken);
 };
 
-const endConversation = async () => {
-  // eslint-disable-next-line no-alert
-  if (!window.confirm(t('END_CONVERSATION_CONFIRMATION'))) {
-    return;
-  }
+const showEndConversationDialog = ref(false);
+
+const openEndConversationDialog = () => {
+  showEndConversationDialog.value = true;
+};
+
+const cancelEndConversation = () => {
+  showEndConversationDialog.value = false;
+};
+
+const confirmEndConversation = async () => {
+  showEndConversationDialog.value = false;
 
   try {
     await store.dispatch('conversation/endConversation');
@@ -142,10 +150,15 @@ const toggleFullscreen = () => {
       "
       class="button transparent compact"
       :title="t('END_CONVERSATION')"
-      @click="endConversation"
+      @click="openEndConversationDialog"
     >
       <FluentIcon icon="sign-out" size="22" class="text-n-slate-12" />
     </button>
+    <EndConversationDialog
+      :show="showEndConversationDialog"
+      @confirm="confirmEndConversation"
+      @cancel="cancelEndConversation"
+    />
     <button
       v-if="showPopoutAction"
       class="button transparent compact new-window--button"
