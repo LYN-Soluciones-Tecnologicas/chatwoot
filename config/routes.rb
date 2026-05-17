@@ -406,9 +406,14 @@ Rails.application.routes.draw do
             post :transcript
             get  :toggle_status
             get  :export
-            delete :destroy
           end
         end
+        # Defined explicitly (not via `collection { delete :destroy }`) because
+        # `:destroy` is a reserved RESTful action name in the `resources` DSL:
+        # inside a collection block Rails treats it as the standard member
+        # destroy route, which is excluded here by `only: [:index, :create]`,
+        # so the route never gets registered.
+        delete 'conversations/destroy', to: 'conversations#destroy'
         resource :contact, only: [:show, :update] do
           collection do
             post :destroy_custom_attributes
