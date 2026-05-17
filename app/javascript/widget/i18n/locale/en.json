@@ -48,6 +48,7 @@
   },
   "START_CONVERSATION": "Start Conversation",
   "END_CONVERSATION": "End Conversation",
+  "END_CONVERSATION_CONFIRMATION": "This will permanently delete this conversation and all its messages. This action cannot be undone. Continue?",
   "CONTINUE_CONVERSATION": "Continue conversation",
   "YOU": "You",
   "START_NEW_CONVERSATION": "Start a new conversation",

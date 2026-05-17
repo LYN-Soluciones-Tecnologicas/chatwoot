@@ -94,8 +94,31 @@ const popoutWindow = () => {
   popoutChatWindow(origin, websiteToken, locale.value, authToken);
 };
 
-const resolveConversation = () => {
-  store.dispatch('conversation/resolveConversation');
+const endConversation = async () => {
+  // eslint-disable-next-line no-alert
+  if (!window.confirm(t('END_CONVERSATION_CONFIRMATION'))) {
+    return;
+  }
+
+  try {
+    await store.dispatch('conversation/endConversation');
+  } catch (error) {
+    // Backend deletion failed: keep the session intact so the visitor
+    // doesn't lose access to a conversation that still exists.
+    return;
+  }
+
+  // Conversation deleted on the backend. Now clear the local session so the
+  // visitor starts fresh. Cookies (cw_conversation / cw_user) live on the
+  // parent domain, so the iframe must ask the SDK to run its reset().
+  if (IFrameHelper.isIFrame()) {
+    IFrameHelper.sendMessage({ event: 'resetWidget' });
+  } else if (RNHelper.isRNWebView()) {
+    RNHelper.sendMessage({ type: 'close-widget' });
+  } else {
+    // Popout / standalone window: no parent SDK, reload to reset state.
+    window.location.reload();
+  }
 };
 
 const toggleFullscreen = () => {
@@ -119,7 +142,7 @@ const toggleFullscreen = () => {
       "
       class="button transparent compact"
       :title="t('END_CONVERSATION')"
-      @click="resolveConversation"
+      @click="endConversation"
     >
       <FluentIcon icon="sign-out" size="22" class="text-n-slate-12" />
     </button>

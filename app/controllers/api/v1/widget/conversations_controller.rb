@@ -1,6 +1,6 @@
 class Api::V1::Widget::ConversationsController < Api::V1::Widget::BaseController
   include Events::Types
-  before_action :render_not_found_if_empty, only: [:toggle_typing, :toggle_status, :set_custom_attributes, :destroy_custom_attributes]
+  before_action :render_not_found_if_empty, only: [:toggle_typing, :toggle_status, :set_custom_attributes, :destroy_custom_attributes, :destroy]
 
   def index
     @conversation = conversation
@@ -76,6 +76,18 @@ class Api::V1::Widget::ConversationsController < Api::V1::Widget::BaseController
       conversation.status = :resolved
       conversation.save!
     end
+    head :ok
+  end
+
+  # Permanently deletes the visitor's current conversation (and its messages,
+  # attachments, etc. via dependent: :destroy_async). Gated behind the same
+  # end_conversation feature flag as toggle_status. The `conversation` helper is
+  # scoped to the authenticated contact_inbox, so a visitor can only ever delete
+  # their own conversation.
+  def destroy
+    return head :forbidden unless @web_widget.end_conversation?
+
+    conversation.destroy!
     head :ok
   end
 

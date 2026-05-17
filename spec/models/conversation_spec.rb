@@ -47,6 +47,36 @@ RSpec.describe Conversation do
     end
   end
 
+  describe '.after_destroy_commit' do
+    let(:account) { create(:account) }
+    let(:inbox) { create(:inbox, account: account) }
+    let!(:conversation) { create(:conversation, account: account, contact: create(:contact, account: account), inbox: inbox) }
+
+    it 'dispatches CONVERSATION_DELETED with a serialized payload and account_id' do
+      payload = JSON.parse(conversation.webhook_data.to_json)
+      allow(Rails.configuration.dispatcher).to receive(:dispatch)
+
+      conversation.destroy!
+
+      expect(Rails.configuration.dispatcher).to have_received(:dispatch)
+        .with(described_class::CONVERSATION_DELETED, kind_of(Time),
+              conversation_data: payload, account_id: account.id)
+    end
+
+    it 'does not pass an ActiveRecord object in the payload (ActiveJob-safe)' do
+      allow(Rails.configuration.dispatcher).to receive(:dispatch)
+
+      conversation.destroy!
+
+      expect(Rails.configuration.dispatcher).to have_received(:dispatch) do |event, _ts, data|
+        next unless event == described_class::CONVERSATION_DELETED
+
+        expect(data[:conversation_data]).to be_a(Hash)
+        expect(data[:conversation_data].to_json).to be_present
+      end
+    end
+  end
+
   describe '.after_create' do
     let(:account) { create(:account) }
     let(:agent) { create(:user, email: 'agent1@example.com', account: account) }

@@ -277,6 +277,69 @@ RSpec.describe '/api/v1/widget/conversations/toggle_typing', type: :request do
     end
   end
 
+  describe 'DELETE /api/v1/widget/conversations/destroy' do
+    context 'when user ends the conversation from the widget' do
+      it 'permanently deletes the conversation and its messages' do
+        create(:message, conversation: conversation, account: account, inbox: web_widget.inbox)
+        expect(conversation.messages.count).to be_positive
+
+        delete '/api/v1/widget/conversations/destroy',
+               headers: { 'X-Auth-Token' => token },
+               params: { website_token: web_widget.website_token },
+               as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(Conversation.exists?(conversation.id)).to be false
+      end
+    end
+
+    context 'when end conversation is not permitted' do
+      before do
+        web_widget.end_conversation = false
+        web_widget.save!
+      end
+
+      it 'returns action not permitted and keeps the conversation' do
+        delete '/api/v1/widget/conversations/destroy',
+               headers: { 'X-Auth-Token' => token },
+               params: { website_token: web_widget.website_token },
+               as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(Conversation.exists?(conversation.id)).to be true
+      end
+    end
+
+    context 'when a token without any conversation is used' do
+      it 'returns not found status' do
+        delete '/api/v1/widget/conversations/destroy',
+               headers: { 'X-Auth-Token' => token_without_conversation },
+               params: { website_token: web_widget.website_token },
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when another contact tries to delete a conversation they do not own' do
+      let(:other_contact) { create(:contact, account: account, email: nil) }
+      let(:other_contact_inbox) { create(:contact_inbox, contact: other_contact, inbox: web_widget.inbox) }
+      let(:other_token) do
+        Widget::TokenService.new(payload: { source_id: other_contact_inbox.source_id, inbox_id: web_widget.inbox.id }).generate_token
+      end
+
+      it 'does not delete the original conversation (scoped to contact_inbox)' do
+        delete '/api/v1/widget/conversations/destroy',
+               headers: { 'X-Auth-Token' => other_token },
+               params: { website_token: web_widget.website_token },
+               as: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(Conversation.exists?(conversation.id)).to be true
+      end
+    end
+  end
+
   describe 'POST /api/v1/widget/conversations/set_custom_attributes' do
     let(:params) { { website_token: web_widget.website_token, custom_attributes: { 'product_name': 'Chatwoot' } } }
 

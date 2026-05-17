@@ -123,6 +123,8 @@ class Conversation < ApplicationRecord
   before_save :ensure_snooze_until_reset
   before_create :determine_conversation_status
   before_create :ensure_waiting_since
+  before_destroy :prepare_conversation_deleted_payload
+  after_destroy_commit :dispatch_conversation_deleted_event
 
   after_update_commit :execute_after_update_commit_callbacks
   after_create_commit :notify_conversation_creation
@@ -319,6 +321,34 @@ class Conversation < ApplicationRecord
     Rails.configuration.dispatcher.dispatch(event_name, Time.zone.now, conversation: self, notifiable_assignee_change: notifiable_assignee_change?,
                                                                        changed_attributes: changed_attributes,
                                                                        performed_by: Current.executed_by)
+  end
+
+  # Snapshot the webhook payload while the conversation and its associations
+  # (contact_inbox, contact, inbox) are still intact. After destroy the record
+  # is gone and dependent: :destroy_async has cleared the children, so the
+  # payload must be captured here. JSON round-tripping freezes it into plain
+  # primitives so it survives ActiveJob serialization in the async dispatcher.
+  def prepare_conversation_deleted_payload
+    @conversation_deleted_payload = JSON.parse(webhook_data.to_json)
+  rescue StandardError => e
+    # Best-effort: during cascade deletes (account/inbox) associations may
+    # already be gone. Never let the notification block the actual destroy.
+    Rails.logger.warn("[ConversationDeleted] Failed to snapshot payload for conversation #{id}: #{e.message}")
+    @conversation_deleted_payload = nil
+  end
+
+  # Fires only after the destroy transaction actually commits. Mirrors
+  # Contact#dispatch_destroy_event: passes a serialized hash (never the
+  # destroyed AR object) to avoid DeserializationError in EventDispatcherJob.
+  def dispatch_conversation_deleted_event
+    return if @conversation_deleted_payload.blank?
+
+    Rails.configuration.dispatcher.dispatch(
+      CONVERSATION_DELETED,
+      Time.zone.now,
+      conversation_data: @conversation_deleted_payload,
+      account_id: account_id
+    )
   end
 
   def conversation_status_changed_to_open?

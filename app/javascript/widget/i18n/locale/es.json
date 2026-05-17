@@ -48,6 +48,7 @@
   },
   "START_CONVERSATION": "Iniciar conversación",
   "END_CONVERSATION": "Finalizar conversación",
+  "END_CONVERSATION_CONFIRMATION": "Esto eliminará permanentemente esta conversación y todos sus mensajes. Esta acción no se puede deshacer. ¿Continuar?",
   "CONTINUE_CONVERSATION": "Continuar conversación",
   "YOU": "Tú",
   "START_NEW_CONVERSATION": "Iniciar una nueva conversación",

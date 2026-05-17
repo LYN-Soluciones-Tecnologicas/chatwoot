@@ -406,6 +406,7 @@ Rails.application.routes.draw do
             post :transcript
             get  :toggle_status
             get  :export
+            delete :destroy
           end
         end
         resource :contact, only: [:show, :update] do

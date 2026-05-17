@@ -128,6 +128,44 @@ describe WebhookListener do
     end
   end
 
+  describe '#conversation_deleted' do
+    let(:conversation_data) { JSON.parse(conversation.webhook_data.to_json) }
+    let(:conversation_deleted_event) do
+      Events::Base.new(:'conversation.deleted', Time.zone.now, conversation_data: conversation_data, account_id: account.id)
+    end
+
+    context 'when no webhook is subscribed to conversation_deleted' do
+      it 'does not trigger webhook' do
+        create(:webhook, subscriptions: ['conversation_created'], inbox: inbox, account: account)
+        expect(WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(conversation_deleted_event)
+      end
+    end
+
+    context 'when a webhook is subscribed to conversation_deleted' do
+      it 'delivers the snapshotted payload to the account webhook' do
+        webhook = create(:webhook, subscriptions: ['conversation_deleted'], inbox: inbox, account: account)
+        expect(WebhookJob).to receive(:perform_later).with(
+          webhook.url,
+          conversation_data.merge(event: 'conversation_deleted'),
+          :account_webhook,
+          secret: webhook.secret,
+          delivery_id: instance_of(String)
+        ).once
+        listener.conversation_deleted(conversation_deleted_event)
+      end
+    end
+
+    context 'when payload or account is missing' do
+      it 'does nothing when conversation_data is blank' do
+        create(:webhook, subscriptions: ['conversation_deleted'], inbox: inbox, account: account)
+        event = Events::Base.new(:'conversation.deleted', Time.zone.now, conversation_data: nil, account_id: account.id)
+        expect(WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(event)
+      end
+    end
+  end
+
   describe '#conversation_updated' do
     let(:custom_attributes) { { test: nil } }
     let!(:conversation_updated_event) do

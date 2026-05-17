@@ -6,6 +6,7 @@ import {
   toggleTyping,
   setUserLastSeenAt,
   toggleStatus,
+  deleteConversation,
   setCustomAttributes,
   deleteCustomAttribute,
 } from 'widget/api/conversation';
@@ -178,6 +179,13 @@ export const actions = {
 
   resolveConversation: async () => {
     await toggleStatus();
+  },
+
+  // Permanently deletes the visitor's conversation on the backend.
+  // The caller (HeaderActions) is responsible for clearing the local
+  // session afterwards (cookies + iframe reload via the SDK reset).
+  endConversation: async () => {
+    await deleteConversation();
   },
 
   setCustomAttributes: async (_, customAttributes = {}) => {

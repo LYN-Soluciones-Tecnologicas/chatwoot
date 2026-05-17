@@ -22,6 +22,19 @@ class WebhookListener < BaseListener
     deliver_webhook_payloads(payload, inbox)
   end
 
+  # The conversation no longer exists here (destroyed). The payload was
+  # snapshotted in Conversation#prepare_conversation_deleted_payload and
+  # passed through as a plain hash, so we deliver it as-is to account
+  # webhooks subscribed to `conversation_deleted`.
+  def conversation_deleted(event)
+    conversation_data = event.data[:conversation_data]
+    account = Account.find_by(id: event.data[:account_id])
+    return if conversation_data.blank? || account.nil?
+
+    payload = conversation_data.merge(event: __method__.to_s)
+    deliver_account_webhooks(payload, account)
+  end
+
   def message_created(event)
     message = extract_message_and_account(event)[0]
     inbox = message.inbox

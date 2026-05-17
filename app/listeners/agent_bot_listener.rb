@@ -15,6 +15,24 @@ class AgentBotListener < BaseListener
     agent_bots_for(inbox, conversation).each { |agent_bot| process_webhook_bot_event(agent_bot, payload) }
   end
 
+  # The conversation is already destroyed here, so we work off the snapshot
+  # captured in Conversation#prepare_conversation_deleted_payload. Routed
+  # through the SAME AgentBot integration as messages (sync dispatcher ->
+  # AgentBots::WebhookJob) so the bot connected to the inbox is notified of
+  # the deletion exactly the way it receives messages.
+  def conversation_deleted(event)
+    conversation_data = event.data[:conversation_data]
+    return if conversation_data.blank?
+
+    inbox = Inbox.find_by(id: conversation_data['inbox_id'])
+    return if inbox.nil?
+
+    payload = conversation_data.merge(event: __method__.to_s)
+    agent_bots_for(inbox).each do |agent_bot|
+      process_webhook_bot_event(agent_bot, payload, agent_bot.conversation_deleted_url)
+    end
+  end
+
   def message_created(event)
     message = extract_message_and_account(event)[0]
     inbox = message.inbox
@@ -64,9 +82,10 @@ class AgentBotListener < BaseListener
     process_webhook_bot_event(agent_bot, payload)
   end
 
-  def process_webhook_bot_event(agent_bot, payload)
-    return if agent_bot.outgoing_url.blank?
+  def process_webhook_bot_event(agent_bot, payload, url = nil)
+    target_url = url.presence || agent_bot.outgoing_url
+    return if target_url.blank?
 
-    AgentBots::WebhookJob.perform_later(agent_bot.outgoing_url, payload)
+    AgentBots::WebhookJob.perform_later(target_url, payload)
   end
 end

@@ -25,6 +25,7 @@ module Events::Types
   CONVERSATION_CAPTAIN_INFERENCE_HANDOFF = 'conversation.captain_inference_handoff'
 
   CONVERSATION_STATUS_CHANGED = 'conversation.status_changed'
+  CONVERSATION_DELETED = 'conversation.deleted'
   CONVERSATION_CONTACT_CHANGED = 'conversation.contact_changed'
   ASSIGNEE_CHANGED = 'assignee.changed'
   TEAM_CHANGED = 'team.changed'

@@ -59,6 +59,14 @@ class AgentBot < ApplicationRecord
     }
   end
 
+  # Endpoint the bot system exposes to clean up a conversation when it is
+  # deleted in Chatwoot. Configurable per bot via bot_config; falls back to
+  # the same outgoing_url that already receives messages so the deletion
+  # travels over the exact same integration as the rest of the bot traffic.
+  def conversation_deleted_url
+    bot_config&.dig('conversation_deleted_url').presence || outgoing_url
+  end
+
   def system_bot?
     account.nil?
   end

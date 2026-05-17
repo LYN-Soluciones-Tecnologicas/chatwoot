@@ -57,6 +57,66 @@ describe AgentBotListener do
     end
   end
 
+  describe '#conversation_deleted' do
+    let(:event_name) { 'conversation.deleted' }
+    let(:conversation_data) { JSON.parse(conversation.webhook_data.to_json) }
+    let(:event) do
+      Events::Base.new(event_name, Time.zone.now, conversation_data: conversation_data, account_id: account.id)
+    end
+
+    context 'when no agent bot is configured on the inbox' do
+      it 'does not notify any bot' do
+        expect(AgentBots::WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(event)
+      end
+    end
+
+    context 'when an agent bot is configured on the inbox' do
+      it 'notifies the bot at outgoing_url by default (same channel as messages)' do
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+        expect(AgentBots::WebhookJob).to receive(:perform_later).with(
+          agent_bot.outgoing_url,
+          conversation_data.merge(event: 'conversation_deleted')
+        ).once
+        listener.conversation_deleted(event)
+      end
+
+      it 'notifies the dedicated conversation_deleted_url when configured in bot_config' do
+        agent_bot.update!(bot_config: { 'conversation_deleted_url' => 'https://host-middleware/chatwoot/end-conversation' })
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+        expect(AgentBots::WebhookJob).to receive(:perform_later).with(
+          'https://host-middleware/chatwoot/end-conversation',
+          conversation_data.merge(event: 'conversation_deleted')
+        ).once
+        listener.conversation_deleted(event)
+      end
+
+      it 'does not notify when the resolved url is blank' do
+        blank_bot = create(:agent_bot, outgoing_url: '')
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: blank_bot)
+        expect(AgentBots::WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(event)
+      end
+    end
+
+    context 'when payload is incomplete' do
+      it 'does nothing when conversation_data is blank' do
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+        blank_event = Events::Base.new(event_name, Time.zone.now, conversation_data: nil, account_id: account.id)
+        expect(AgentBots::WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(blank_event)
+      end
+
+      it 'does nothing when the inbox no longer exists' do
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+        data = conversation_data.merge('inbox_id' => 0)
+        missing_event = Events::Base.new(event_name, Time.zone.now, conversation_data: data, account_id: account.id)
+        expect(AgentBots::WebhookJob).not_to receive(:perform_later)
+        listener.conversation_deleted(missing_event)
+      end
+    end
+  end
+
   describe '#webwidget_triggered' do
     let(:event_name) { 'webwidget.triggered' }
 

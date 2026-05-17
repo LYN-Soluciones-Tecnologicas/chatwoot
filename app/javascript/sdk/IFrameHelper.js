@@ -256,6 +256,28 @@ export const IFrameHelper = {
       removeUnreadClass();
     },
 
+    // Triggered by the widget after the visitor permanently deletes their
+    // conversation. Surgically clears ONLY where the conversation is stored:
+    // the `cw_conversation` cookie (session token) plus the in-memory store
+    // (cleared by reloading the iframe). The `cw_user_*` cookie (user
+    // identity from setUser) and UI localStorage (bubble position, chat
+    // size, campaign cache) are intentionally left untouched.
+    resetWidget: () => {
+      if (window.$chatwoot.isOpen) {
+        IFrameHelper.events.toggleBubble();
+      }
+
+      Cookies.remove('cw_conversation');
+
+      const iframe = IFrameHelper.getAppFrame();
+      iframe.src = IFrameHelper.getUrl({
+        baseUrl: window.$chatwoot.baseUrl,
+        websiteToken: window.$chatwoot.websiteToken,
+      });
+
+      window.$chatwoot.resetTriggered = true;
+    },
+
     onBubbleToggle: isOpen => {
       if (!isOpen) {
         IFrameHelper.sendMessage('toggle-fullscreen', { isFullscreen: false });
