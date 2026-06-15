@@ -103,15 +103,7 @@ export const IFrameHelper = {
   getAppFrame: () => document.getElementById('chatwoot_live_chat_widget'),
   getBubbleHolder: () => document.getElementsByClassName('woot--bubble-holder'),
   sendMessage: (key, value) => {
-    // Defensive: window events (resize, navigation) may fire before the
-    // iframe is inserted into the DOM (head-loaded SDK, SPA host) or after
-    // it gets removed during route changes. Without this guard, every such
-    // event crashes with "Cannot read properties of null (reading
-    // 'contentWindow')", flooding the host's console (e.g. 32 errors on a
-    // single page transition with layout shifts).
     const element = IFrameHelper.getAppFrame();
-    if (!element || !element.contentWindow) return;
-
     element.contentWindow.postMessage(
       `chatwoot-widget:${JSON.stringify({ event: key, ...value })}`,
       '*'
