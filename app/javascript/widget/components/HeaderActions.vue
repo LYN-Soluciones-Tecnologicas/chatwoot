@@ -111,9 +111,17 @@ const confirmEndConversation = async () => {
   try {
     await store.dispatch('conversation/endConversation');
   } catch (error) {
-    // Backend deletion failed: keep the session intact so the visitor
-    // doesn't lose access to a conversation that still exists.
-    return;
+    // 404 means the conversation no longer exists on the backend (already
+    // wiped by the inactivity cron or another path). Semantically that's
+    // the same outcome we want, so fall through to clear the client and
+    // start fresh — otherwise the visitor would be stuck with a broken
+    // session that points to a gone conversation.
+    // Any other status (403, 5xx, network failure) is a real failure:
+    // keep the session intact so they can retry.
+    const status = error?.response?.status;
+    if (status !== 404) {
+      return;
+    }
   }
 
   // Conversation deleted on the backend. Now clear the local session so the
