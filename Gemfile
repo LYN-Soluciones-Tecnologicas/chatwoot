@@ -276,3 +276,5 @@ group :development, :test do
   gem 'spring'
   gem 'spring-watcher-listen'
 end
+
+# reactiva la ingesta del grafo de dependencias (2026-08-19)
