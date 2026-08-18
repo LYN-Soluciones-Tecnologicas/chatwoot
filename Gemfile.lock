@@ -184,6 +184,11 @@ GEM
       bundler (>= 1.2.0, < 3)
       thor (~> 1.0)
     byebug (11.1.3)
+    caracal (1.4.1)
+      nokogiri (~> 1.6)
+      rubyzip (~> 1.1)
+      tilt (>= 1.4)
+    cgi (0.5.2)
     childprocess (5.1.0)
       logger (~> 1.5)
     cld3 (3.7.0)
@@ -205,13 +210,14 @@ GEM
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0.0)
     database_cleaner-core (2.0.1)
-    datadog (2.19.0)
-      datadog-ruby_core_source (~> 3.4, >= 3.4.1)
-      libdatadog (~> 18.1.0.1.0)
-      libddwaf (~> 1.24.1.0.3)
+    datadog (2.32.0)
+      cgi
+      datadog-ruby_core_source (~> 3.5, >= 3.5.2)
+      libdatadog (~> 30.0.0.1.0)
+      libddwaf (~> 1.30.0.0.0)
       logger
       msgpack
-    datadog-ruby_core_source (3.4.1)
+    datadog-ruby_core_source (3.5.4)
     date (3.4.1)
     debug (1.8.0)
       irb (>= 1.5.0)
@@ -329,10 +335,9 @@ GEM
     fcm (1.0.8)
       faraday (>= 1.0.0, < 3.0)
       googleauth (~> 1)
-    ffi (1.17.2)
-    ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x86_64-darwin)
-    ffi (1.17.2-x86_64-linux-gnu)
+    ffi (1.17.4-arm64-darwin)
+    ffi (1.17.4-x86_64-darwin)
+    ffi (1.17.4-x86_64-linux-gnu)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
       rake
@@ -513,15 +518,14 @@ GEM
       logger (~> 1.6)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
-    libdatadog (18.1.0.1.0)
-    libdatadog (18.1.0.1.0-x86_64-linux)
-    libddwaf (1.24.1.0.3)
+    libdatadog (30.0.0.1.0)
+    libdatadog (30.0.0.1.0-arm64-darwin)
+    libdatadog (30.0.0.1.0-x86_64-linux)
+    libddwaf (1.30.0.0.2-arm64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.24.1.0.3-arm64-darwin)
+    libddwaf (1.30.0.0.2-x86_64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.24.1.0.3-x86_64-darwin)
-      ffi (~> 1.0)
-    libddwaf (1.24.1.0.3-x86_64-linux)
+    libddwaf (1.30.0.0.2-x86_64-linux)
       ffi (~> 1.0)
     line-bot-api (1.28.0)
     lint_roller (1.1.0)
@@ -547,6 +551,7 @@ GEM
       net-pop
       net-smtp
     marcel (1.1.0)
+    matrix (0.4.3)
     maxminddb (0.1.22)
     meta_request (0.8.5)
       rack-contrib (>= 1.1, < 3)
@@ -557,11 +562,10 @@ GEM
     mime-types-data (3.2023.0218.1)
     mini_magick (4.12.0)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.25.5)
     mock_redis (0.36.0)
       ruby2_keywords
-    msgpack (1.8.0)
+    msgpack (1.8.4)
     multi_json (1.15.0)
     multi_xml (0.8.0)
       bigdecimal (>= 3.1, < 5)
@@ -589,9 +593,6 @@ GEM
     newrelic_rpm (9.6.0)
       base64
     nio4r (2.7.3)
-    nokogiri (1.19.1)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.19.1-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.19.1-x86_64-darwin)
@@ -663,11 +664,18 @@ GEM
     parser (3.3.8.0)
       ast (~> 2.4.1)
       racc
+    pdf-core (0.10.0)
     pg (1.5.3)
     pg_search (2.3.6)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
     pgvector (0.1.1)
+    prawn (2.5.0)
+      matrix (~> 0.4)
+      pdf-core (~> 0.10.0)
+      ttfunk (~> 1.8)
+    prawn-table (0.2.2)
+      prawn (>= 1.3.0, < 3.0.0)
     prism (1.4.0)
     procore-sift (1.0.0)
       activerecord (>= 6.1)
@@ -844,6 +852,7 @@ GEM
     ruby_llm-schema (0.2.5)
     ruby_parser (3.20.0)
       sexp_processor (~> 4.16)
+    rubyzip (1.3.0)
     sass (3.7.4)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
@@ -958,6 +967,8 @@ GEM
       i18n
     timeout (0.4.3)
     trailblazer-option (0.1.2)
+    ttfunk (1.8.0)
+      bigdecimal (~> 3.1)
     twilio-ruby (7.6.0)
       faraday (>= 0.9, < 3.0)
       jwt (>= 1.5, < 3.0)
@@ -1020,7 +1031,6 @@ PLATFORMS
   arm64-darwin-20
   arm64-darwin-21
   arm64-darwin-22
-  ruby
   x86_64-darwin-18
   x86_64-darwin-20
   x86_64-darwin-21
@@ -1048,12 +1058,13 @@ DEPENDENCIES
   bullet
   bundle-audit
   byebug
+  caracal (~> 1.4)
   cld3 (~> 3.7)
   climate_control
   commonmarker
   csv-safe
   database_cleaner
-  datadog (~> 2.0)
+  datadog (~> 2.32)
   debug (~> 1.8)
   devise (>= 4.9.4)
   devise-secure_password!
@@ -1115,6 +1126,8 @@ DEPENDENCIES
   pg
   pg_search
   pgvector
+  prawn (~> 2.5)
+  prawn-table (~> 0.2)
   procore-sift
   pry-rails
   puma
